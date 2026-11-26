@@ -3,7 +3,7 @@
 import { signIn } from 'next-auth/react';
 import { useState, type FormEvent } from 'react';
 import type { ProviderId } from '@/auth';
-import { CloseIcon } from './Icons';
+import { CloseIcon, GoogleIcon } from './Icons';
 import { Sheet } from './Sheet';
 
 export function SignInDialog({ providers, onClose }: { providers: ProviderId[]; onClose: () => void }) {
@@ -34,6 +34,7 @@ export function SignInDialog({ providers, onClose }: { providers: ProviderId[]; 
 
         {providers.includes('google') && (
           <button type="button" className="btn btn-light" disabled={busy} onClick={() => signIn('google', { callbackUrl })}>
+            <GoogleIcon />
             Continue with Google
           </button>
         )}
