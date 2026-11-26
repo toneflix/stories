@@ -1,0 +1,40 @@
+:root {
+  --tf-ink: #fff6e6;
+  --tf-glow: #ffb45e;
+  --tf-bg: #07060d;
+  color-scheme: dark;
+}
+html, body, #app { margin: 0; height: 100%; background: var(--tf-bg); overflow: hidden; }
+.tf-root { font-family: "Fraunces", Georgia, "Times New Roman", serif; color: var(--tf-ink); height: 100%; }
+.tf-stage { position: fixed; inset: 0; display: grid; grid-template: 100% / 100%; place-items: center; }
+.tf-stage > * { grid-area: 1 / 1; }
+.tf-frame { position: relative; overflow: hidden; touch-action: none; }
+.tf-frame canvas { cursor: grab; }
+.tf-capture .tf-stage { position: absolute; left: 0; top: 0; place-items: start; }
+.tf-fade, .tf-card, .tf-subs, .tf-prompt { position: absolute; inset: 0; pointer-events: none; }
+.tf-fade { background: #000; }
+.tf-card { display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; text-align: center; padding: 0 8%;
+  text-shadow: 0 0 calc(var(--frame-h) * 0.03) rgba(255, 170, 80, 0.7), 0 2px 3px rgba(0,0,0,.6); }
+.tf-card h1 { margin: 0; font-weight: 400; font-style: italic; font-size: calc(var(--frame-h) * 0.058); line-height: 1.05; }
+.tf-card p { margin: calc(var(--frame-h) * 0.012) 0 0; font-size: calc(var(--frame-h) * 0.017); letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.85; }
+.tf-subs { display: flex; align-items: flex-end; justify-content: center; box-sizing: border-box; padding: 0 9% calc(var(--frame-h) * 0.12);
+  text-align: center; font-size: calc(var(--frame-h) * 0.026); line-height: 1.35; text-shadow: 0 1px 2px #000, 0 0 14px rgba(0,0,0,.9); opacity: 0; }
+.tf-prompt { display: flex; align-items: flex-start; justify-content: center; padding-top: calc(var(--frame-h) * 0.1); box-sizing: border-box;
+  font-size: calc(var(--frame-h) * 0.026); letter-spacing: 0.04em; opacity: 0; transition: opacity .6s; color: var(--tf-glow);
+  text-shadow: 0 0 14px rgba(255, 160, 60, .8), 0 1px 2px #000; }
+.tf-prompt.on { opacity: 1; animation: tf-breathe 2.2s ease-in-out infinite; }
+@keyframes tf-breathe { 50% { opacity: .55; } }
+.tf-start { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: radial-gradient(ellipse at 50% 60%, #2a1d3d 0%, #07060d 70%); transition: opacity 1s; text-align: center; padding: 16px; box-sizing: border-box; z-index: 2; }
+.tf-start.gone { opacity: 0; pointer-events: none; }
+.tf-start h1 { margin: 0; font-weight: 400; font-style: italic; font-size: clamp(32px, 7vw, 72px); text-shadow: 0 0 30px rgba(255,170,80,.5); }
+.tf-start p { margin: 0; letter-spacing: .3em; text-transform: uppercase; font-size: 13px; opacity: .7; }
+.tf-start button, .tf-again { font: inherit; font-size: 18px; color: #1a1020; background: var(--tf-glow); border: 0; border-radius: 999px;
+  padding: 12px 34px; cursor: pointer; box-shadow: 0 0 30px rgba(255,170,80,.5); margin-top: 12px; }
+.tf-start button:disabled { opacity: .5; cursor: wait; }
+.tf-start small { opacity: .55; font-size: 13px; letter-spacing: .05em; }
+.tf-again { align-self: end; margin-bottom: 6vh; opacity: 0; pointer-events: none; transition: opacity 1s; z-index: 3; }
+.tf-again.on { opacity: 1; pointer-events: auto; }
+.tf-error { position: fixed; left: 16px; right: 16px; bottom: max(16px, env(safe-area-inset-bottom, 0px)); z-index: 10; padding: 14px 16px;
+  background: #2a1020; border: 1px solid #ff7a7a66; border-radius: 12px; color: #ffe9e9; font: 14px/1.4 system-ui, sans-serif; }
+.tf-error p { margin: 6px 0; } .tf-error small { opacity: .6; font-size: 11px; word-break: break-all; }
