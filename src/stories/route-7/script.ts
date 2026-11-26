@@ -1,6 +1,7 @@
 import { beats } from '../../engine/beats';
 import { ClipTrack } from '../../engine/clips';
 import { Track } from '../../engine/timeline';
+import { REAL } from '../../engine/look';
 import type { CameraKey } from '../../engine/camera';
 import type { Cue } from '../../engine/types';
 import { BUS, STOPS, routePose, shelterPose } from './world';
@@ -123,7 +124,9 @@ export function shelterPoint(i: number, out: number, along: number, up: number):
   return [w.x, up, w.z];
 }
 
-const driverFace = (t: number) => busPoint(t, 0.45, 1.27, 1.35);
+/** The realistic look's bus is lower: its cabin sits this much further down. */
+const LOW = REAL ? 0.42 : 0;
+const driverFace = (t: number) => busPoint(t, 0.45, 1.27 - LOW, 1.35);
 
 /** The narrator's camera. Vertical frame (9:16): favour height, stage in depth. */
 export const CAMERA: CameraKey[] = [
@@ -132,10 +135,10 @@ export const CAMERA: CameraKey[] = [
   { t: 9, pos: [-3.2, 4.5, -26], look: busPoint(9, 0, 1, 0), fov: 44 },
   { t: 14.4, pos: busPoint(14.4, 2.8, 1.4, 5.0), look: busPoint(14.4, 0.4, 1.0, 1.0), fov: 42 },
   // alongside the driver's window, then round to the windscreen
-  { t: 14.5, pos: busPoint(14.5, 2.1, 1.3, 1.45), look: driverFace(14.5), fov: 36, cut: true },
-  { t: 20, pos: busPoint(20, 1.9, 1.3, 1.9), look: driverFace(20), fov: 34 },
-  { t: 23.2, pos: busPoint(23.2, 2.4, 1.35, 3.6), look: busPoint(23.2, 0.45, 1.2, 1.6), fov: 38 },
-  { t: 25.9, pos: busPoint(25.9, 0.7, 1.3, 4.6), look: busPoint(25.9, 0.35, 1.1, 1.5), fov: 38 },
+  { t: 14.5, pos: busPoint(14.5, 2.1 + LOW, 1.3 - LOW, 1.45), look: driverFace(14.5), fov: 36, cut: true },
+  { t: 20, pos: busPoint(20, 1.9 + LOW, 1.3 - LOW, 1.9), look: driverFace(20), fov: 34 },
+  { t: 23.2, pos: busPoint(23.2, 2.4, 1.35 - LOW, 3.6), look: busPoint(23.2, 0.45, 1.2 - LOW, 1.6), fov: 38 },
+  { t: 25.9, pos: busPoint(25.9, 0.7, 1.3 - LOW * 0.5, 4.6), look: busPoint(25.9, 0.35, 1.1 - LOW, 1.5), fov: 38 },
   // stop 1, from up the street: the bus pulls in beside the empty shelter
   { t: 26, pos: shelterPoint(0, -0.2, 7.5, 1.1), look: shelterPoint(0, -1.2, -6, 1.1), fov: 46, cut: true },
   { t: 31, pos: shelterPoint(0, -0.3, 7.0, 1.15), look: shelterPoint(0, -0.9, -0.5, 1.1), fov: 42 },

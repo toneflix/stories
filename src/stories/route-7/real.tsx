@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { useMemo, useRef } from 'react';
 import { useThree } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
+import { publicUrl } from '../../engine/types';
+import type { BusModel } from './bus';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { Water as MirrorWater } from 'three/addons/objects/Water.js';
 import { useStoryFrame } from '../../engine/clock';
@@ -8,7 +11,7 @@ import { MOBILE } from '../../engine/Player';
 import { noiseNormalMap } from '../../engine/look';
 import { smoothstep } from '../../engine/timeline';
 import { B, BUS_S } from './script';
-import { C, ROUTE_LENGTH, routePose } from './world';
+import { BUS, C, ROUTE_LENGTH, routePose } from './world';
 import { colored, mergedMesh } from './city';
 import { rng } from '../../engine/random';
 import { SKY, SUN_DIR, col } from './Scene';
@@ -175,4 +178,124 @@ export function Skyline() {
     return m;
   }, []);
   return <primitive object={mesh} />;
+}
+
+const prop = (name: string) => publicUrl(`assets/props/${name}.glb`);
+
+/**
+ * The VW T3 body in place of the panel-built one. The cabin (seats, dash, wheel) stays,
+ * so the people inside still sit where the script puts them; the painted windows are made
+ * see-through so you can see them.
+ */
+const CABIN_DROP = 0.42;
+/** Half turns to put the T3's nose at bus-space +z. */
+const T3_TURN = Math.PI;
+export function RealBusBody({ model }: { model: BusModel }) {
+  const gltf = useGLTF(prop('vw-t3'));
+  useMemo(() => {
+    for (const c of model.shell.children) if (c !== model.cabin) c.visible = false;
+    // the T3 is lower than the panel bus: drop the cabin and the seats with it
+    model.cabin.position.y = -CABIN_DROP;
+    model.driverSeat.y -= CABIN_DROP; model.passengerSeat.y -= CABIN_DROP;
+    model.door.visible = false;
+    for (const c of model.group.children) if ((c as THREE.Mesh).isMesh) c.visible = false;
+    const body = gltf.scene.clone();
+    // measure the body alone: the details mesh carries a wide ground-shadow card
+    const shape = () => { let o: THREE.Object3D = body; body.traverse((x) => { if (/body/i.test(x.name) && (x as THREE.Mesh).isMesh) o = x; }); return new THREE.Box3().setFromObject(o, true); };
+    // the model stands at an angle in its own file: turn it square (smallest footprint),
+    // then so its long side runs along z
+    let best = 0, area = Infinity;
+    for (let a = 0; a < 180; a += 1) {
+      body.rotation.y = THREE.MathUtils.degToRad(a); body.updateMatrixWorld(true);
+      const sz = shape().getSize(new THREE.Vector3());
+      if (sz.x * sz.z < area) { area = sz.x * sz.z; best = body.rotation.y; }
+    }
+    body.rotation.y = best; body.updateMatrixWorld(true);
+    { const sz = shape().getSize(new THREE.Vector3()); if (sz.x > sz.z) body.rotation.y += Math.PI / 2; }
+    body.rotation.y += T3_TURN;
+    body.updateMatrixWorld(true);
+    const b2 = shape(), s2 = b2.getSize(new THREE.Vector3());
+    const k = (BUS.length + 0.1) / s2.z;
+    body.scale.multiplyScalar(k);
+    body.updateMatrixWorld(true);
+    const b3 = shape(), c3 = b3.getCenter(new THREE.Vector3());
+    body.position.set(-c3.x, -b3.min.y - 0.05, -c3.z);
+    body.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      m.castShadow = m.receiveShadow = true;
+      const mat = (m.material as THREE.MeshStandardMaterial).clone();
+      mat.transparent = true;
+      mat.onBeforeCompile = (sh) => {
+        sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+          // painted glass is a grey-green: let it show the cabin through
+          float glassy = smoothstep(0.0, 0.03, diffuseColor.g - diffuseColor.r) * smoothstep(-0.01, 0.02, diffuseColor.b - diffuseColor.r) * step(max(diffuseColor.g, diffuseColor.b), 0.8);
+          diffuseColor.a *= mix(1.0, 0.18, glassy);`)
+          .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.08, glassy);');
+      };
+      mat.customProgramCacheKey = () => 't3glass';
+      m.material = mat;
+    });
+    model.group.add(body);
+    model.headlights.visible = false;
+  }, [gltf, model]);
+  return null;
+}
+
+/** One street-facing building from a prop, its front on its local +z. */
+interface Lot { url: string; part?: RegExp; width: number; depth: number; scale: number; sink: number; turn: number }
+const LOTS: Lot[] = [
+  { url: 'old-residential', width: 19.5, depth: 11.5, scale: 1, sink: 1.2, turn: 0 },
+  { url: 'slum-house', width: 11.4, depth: 9.4, scale: 1, sink: 0.6, turn: 0 },
+  ...['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((l) => ({ url: 'modular-slums', part: new RegExp(`^${l}\\d`), width: 2.3 * 1.5, depth: 6.6 * 1.5, scale: 1.5, sink: 0.9, turn: 0 })),
+];
+
+/** Pull one building out of a prop: the whole model, or the pieces of a kit whose names match. */
+function lotObject(scene: THREE.Object3D, lot: Lot) {
+  let obj: THREE.Object3D;
+  if (!lot.part) obj = scene.clone();
+  else {
+    obj = new THREE.Group();
+    scene.updateMatrixWorld(true);
+    scene.traverse((o) => { if (lot.part!.test(o.name)) { const c = o.clone(); o.matrixWorld.decompose(c.position, c.quaternion, c.scale); obj.add(c); } });
+  }
+  const holder = new THREE.Group();
+  obj.scale.multiplyScalar(lot.scale);
+  obj.rotation.y = lot.turn;
+  obj.updateMatrixWorld(true);
+  const b = new THREE.Box3().setFromObject(obj), c = b.getCenter(new THREE.Vector3());
+  obj.position.set(-c.x, -b.min.y - lot.sink, -c.z);
+  holder.add(obj);
+  holder.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.castShadow = o.receiveShadow = true; });
+  return { holder, width: b.max.x - b.min.x, depth: b.max.z - b.min.z };
+}
+
+/** The street from real buildings: a run of blocks, shacks and old flats down both sides. */
+export function RealStreet() {
+  const urls = ['old-residential', 'slum-house', 'modular-slums'];
+  const gltfs = useGLTF(urls.map(prop));
+  const g = useMemo(() => {
+    const scenes = Object.fromEntries(urls.map((u, i) => [u, gltfs[i].scene]));
+    const r = rng(53), g = new THREE.Group();
+    for (const side of [1, -1] as const) {
+      let s = -30;
+      while (s < ROUTE_LENGTH + 40) {
+        const pick = r();
+        const lot = pick < 0.22 ? LOTS[0] : pick < 0.34 ? LOTS[1] : LOTS[2 + Math.floor(r() * 7)];
+        const { holder, width, depth } = lotObject(scenes[lot.url], lot);
+        const mid = s + width / 2;
+        const p = routePose(THREE.MathUtils.clamp(mid, 0, ROUTE_LENGTH));
+        const at = p.pos.clone().addScaledVector(p.right, side * (8.4 + depth / 2 + r() * 0.8));
+        if (mid > ROUTE_LENGTH) at.addScaledVector(p.forward, mid - ROUTE_LENGTH);
+        if (mid < 0) at.addScaledVector(p.forward, mid);
+        holder.position.copy(at);
+        // local +z (the front) faces the road
+        holder.rotation.y = p.heading + (side > 0 ? -Math.PI / 2 : Math.PI / 2);
+        g.add(holder);
+        s += width + 0.2 + r() * 0.8;
+      }
+    }
+    return g;
+  }, [gltfs]);
+  return <primitive object={g} />;
 }

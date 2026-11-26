@@ -15,7 +15,7 @@ import { BUS, ROUTE_LENGTH, routePose, shelterPose, glowTexture } from './world'
 import { buildCity, buildPalms, buildPoles, buildShelter, SHELTERS } from './city';
 import { buildBus, type BusModel } from './bus';
 import { REAL } from '../../engine/look';
-import { RealAtmosphere, RealWater, Skyline, weather, polishBus } from './real';
+import { RealAtmosphere, RealWater, Skyline, RealStreet, RealBusBody, weather, polishBus } from './real';
 
 const asset = (p: string) => publicUrl(`assets/${p}`);
 
@@ -28,6 +28,8 @@ export function Scene() {
       {REAL ? <RealWater /> : <Water />}
       <City />
       {REAL && <Skyline />}
+      {REAL && <RealStreet />}
+      {REAL && <RealBusBody model={model} />}
       {SHELTERS.map((i) => <Shelter key={i} i={i} />)}
       <Debris />
       <Bus model={model} />
@@ -190,7 +192,7 @@ function Water() {
 function City() {
   const g = useMemo(() => {
     const g = new THREE.Group();
-    g.add(buildCity(), buildPalms(), buildPoles());
+    g.add(...(REAL ? [] : [buildCity()]), buildPalms(), buildPoles());
     if (REAL) weather(g);
     return g;
   }, []);
@@ -326,8 +328,20 @@ function pelvisOffset(ch: ReturnType<typeof useCharacter>, clip: string) {
   return ch.bone('pelvis').getWorldPosition(new THREE.Vector3());
 }
 
+/** The engine's bone names on the Rocketbox (3ds Max Biped) rig. */
+const RB_BONES = {
+  Head: 'Bip01_Head', neck_01: 'Bip01_Neck', pelvis: 'Bip01_Pelvis',
+  hand_l: 'Bip01_L_Hand', hand_r: 'Bip01_R_Hand', upperarm_l: 'Bip01_L_UpperArm', upperarm_r: 'Bip01_R_UpperArm',
+  lowerarm_l: 'Bip01_L_Forearm', lowerarm_r: 'Bip01_R_Forearm',
+};
+const REAL_AYO = { parts: [asset('characters/rb-ayo.glb')], animations: [asset('animations/rb-ayo-drive.glb')], boneMap: RB_BONES };
+const REAL_HER = {
+  parts: [asset('characters/rb-passenger.glb')], boneMap: RB_BONES,
+  animations: ['walk', 'idle', 'sit', 'sit-talk'].map((c) => asset(`animations/rb-her-${c}.glb`)),
+};
+
 function Driver({ model }: { model: BusModel }) {
-  const ade = useCharacter({
+  const ade = useCharacter(REAL ? REAL_AYO : {
     parts: [asset('characters/driver-body.glb'), asset('characters/driver-outfit.glb')],
     attach: [
       { url: asset('characters/hair-buzzed.glb'), bone: 'Head', paint: '#b9b4ad' },
@@ -339,6 +353,15 @@ function Driver({ model }: { model: BusModel }) {
   });
   useMemo(() => {
     const hip = pelvisOffset(ade, 'Driving_Loop');
+    if (REAL) {
+      // a chair pose with the hands brought to a wheel in front of him (see the frame loop)
+      const seat = model.driverSeat;
+      ade.root.position.set(seat.x - hip.x, seat.y + SEATED_HIP - hip.y, seat.z - hip.z);
+      model.group.add(ade.root);
+      model.wheelMount.position.set(seat.x, seat.y + 0.42, seat.z + 0.42);
+      model.wheelMount.rotation.x = -0.45;
+      return;
+    }
     const seat = model.driverSeat;
     ade.root.position.set(seat.x - hip.x, seat.y + SEATED_HIP - hip.y, seat.z - hip.z);
     model.group.add(ade.root);
@@ -369,6 +392,15 @@ function Driver({ model }: { model: BusModel }) {
     const s = B.at(t);
     model.group.updateMatrixWorld(true);
     ade.pose(DRIVER_CLIPS.sample(t, idle));
+    if (REAL) {
+      // both hands on the rim, elbows out and down
+      for (const side of [-1, 1]) {
+        const grip = model.wheelMount.localToWorld(tmp.a.set(side * 0.17, -0.03, 0));
+        const pole = at(model.driverSeat.x + side * 0.6, model.driverSeat.y - 0.2, model.driverSeat.z + 0.1, tmp.b);
+        const lr = side > 0 ? 'l' : 'r';
+        solveTwoBone(ade.bone(`upperarm_${lr}`), ade.bone(`lowerarm_${lr}`), ade.bone(`hand_${lr}`), grip.clone(), pole.clone(), 1);
+      }
+    }
     // eyes: the road ahead, the door at each stop, the coin, then a look back at her
     const fare = smoothstep(79.8, 80.4, t) * (1 - smoothstep(85.4, 86.0, t));
     const back = smoothstep(70.2, 71.0, t) * (1 - smoothstep(79.4, 80.0, t)) + smoothstep(86.2, 86.8, t) * (1 - smoothstep(88.8, 89.5, t));
@@ -400,7 +432,7 @@ const coinWorld = new THREE.Vector3();
 const driverHand = new THREE.Vector3();
 
 function Passenger({ model }: { model: BusModel }) {
-  const her = useCharacter({
+  const her = useCharacter(REAL ? REAL_HER : {
     parts: [asset('characters/pip-body.glb'), asset('characters/pip-outfit.glb')],
     attach: [{ url: asset('characters/hair-long.glb'), bone: 'Head', tint: '#1e1410' }],
     tints: { Eyebrows: '#1e1410' },
