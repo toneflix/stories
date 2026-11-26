@@ -78,9 +78,7 @@ export function Feed({ stories, startSlug }: { stories: ReleasedStory[]; startSl
         ))}
         <section className="feed-item" data-index={stories.length} aria-label="End of feed">
           <div className="feed-frame feed-end">
-            <span className="eyebrow">Next story</span>
-            <h2>Coming soon</h2>
-            <p>You&apos;ve seen everything for now.</p>
+            <h2>More coming soon</h2>
             <Link href="/stories" className="btn btn-light">
               See all stories
             </Link>
@@ -205,7 +203,7 @@ function FeedItem({
           <div className="caption">
             <div className="caption-meta">
               <span>
-                <strong>@toneflix</strong> · {themeLabel(story.theme)} · {story.duration}
+                <strong>@toneflix</strong> · {themeLabel(story.theme)}
               </span>
               <button type="button" className="caption-hide" onClick={() => setCaptionHidden(true)}>
                 <ChevronIcon size={14} />

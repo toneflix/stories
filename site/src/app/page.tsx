@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { HeaderAccount } from '@/components/HeaderAccount';
-import { CubeIcon, HeartIcon, PlayIcon } from '@/components/Icons';
+import { CubeIcon, GitHubIcon, HeartIcon, PlayIcon } from '@/components/Icons';
 import { NotifyForm } from '@/components/NotifyForm';
 import { releasedStories, themeLabel } from '@/content/stories';
+import { repoUrl } from '@/lib/site';
 
 export default function Home() {
   const demo = releasedStories[0];
@@ -18,6 +19,7 @@ export default function Home() {
         <nav className="site-nav" aria-label="Main">
           <Link href="/stories">Stories</Link>
           <a href="#how">About</a>
+          <a href={repoUrl}>GitHub</a>
         </nav>
         <div className="site-actions">
           <HeaderAccount />
@@ -29,7 +31,6 @@ export default function Home() {
 
       <section className="hero wrap">
         <div className="hero-copy">
-          <span className="pill">Toneflix Stories</span>
           <h1>A collection of short interactive films made with Three.js and WebGL.</h1>
           <div className="actions">
             <Link href="/watch" className="btn btn-primary btn-lg">
@@ -64,7 +65,6 @@ export default function Home() {
               <h2>{demo.title}</h2>
             </div>
             <div className="tags">
-              <span>{demo.duration}</span>
               {demo.narrated && <span>Narrated</span>}
               <span>{themeLabel(demo.theme)}</span>
             </div>
@@ -121,7 +121,6 @@ export default function Home() {
         <div className="notify">
           <div>
             <h2>Hear about new stories</h2>
-            <p>We&apos;ll email you when a new one is out. Nothing else.</p>
           </div>
           <NotifyForm />
         </div>
@@ -129,8 +128,14 @@ export default function Home() {
 
       <footer className="site-footer">
         <div className="wrap">
-          <span>© {new Date().getFullYear()} Toneflix Stories</span>
-          <Link href="/stories">All stories</Link>
+          <span>© {new Date().getFullYear()} Toneflix Stories · Open source</span>
+          <div className="footer-links">
+            <Link href="/stories">All stories</Link>
+            <a href={repoUrl}>
+              <GitHubIcon size={16} />
+              GitHub
+            </a>
+          </div>
         </div>
       </footer>
     </div>

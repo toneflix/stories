@@ -12,7 +12,6 @@ type Base = { slug: string; title: string; theme: ThemeId };
 
 export type ReleasedStory = Base & {
   status: 'released';
-  duration: string;
   narrated: boolean;
   caption: string;
   video: string;
@@ -33,7 +32,6 @@ const released: ReleasedStory[] = [
     title: 'The Lantern Keeper (Demo)',
     theme: 'folklore',
     status: 'released',
-    duration: '0:45',
     narrated: true,
     caption:
       'Every evening, Pip climbed the old hill to wake the great lantern, so that travellers below could find their way home. But tonight, the flame would not catch.',
