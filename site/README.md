@@ -14,17 +14,9 @@ npm run dev
 
 Without `DATABASE_URL`, the site uses a local file database in `.data/` and migrates it on start. With no sign-in providers configured, a local-only "sign in by name" option appears so likes and comments can be tested.
 
-## Deploy on Vercel
+## Deploy
 
-1. Import the repository and set **Root Directory** to `site`.
-2. Add a Postgres database: Storage → Neon (Vercel Marketplace). This sets `DATABASE_URL`. Migrations run during each build.
-3. Set `AUTH_SECRET` (`npx auth secret` prints one).
-4. Sign-in, at least one of:
-   - Google: `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET`. Redirect URI: `https://<domain>/api/auth/callback/google`.
-   - Email link: `AUTH_RESEND_KEY` and `AUTH_EMAIL_FROM` (a sender on a domain verified in Resend).
-5. Optional: `NEXT_PUBLIC_LIVE_BASE_URL` sets where the "Play it live" links point. Defaults to `https://toneflix.github.io/stories`.
-
-See `.env.example` for the full list.
+See [docs/DEPLOY.md](../docs/DEPLOY.md).
 
 ## Adding a story
 
