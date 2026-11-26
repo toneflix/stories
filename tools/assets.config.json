@@ -1,0 +1,63 @@
+{
+  "characters": [
+    {
+      "src": "../.sources/ubc/Superhero_Female_FullBody.gltf",
+      "out": "../public/assets/characters/pip-body.glb",
+      "textures": {
+        "MI_Superhero_Female": "../.sources/ubc/T_Superhero_Female_Dark_BaseColor.png"
+      },
+      "keepAlpha": [
+        "MI_Hair_2"
+      ],
+      "cullUnder": [
+        "../.sources/outfits/Outfit_Female_Peasant.gltf"
+      ],
+      "cull": {
+        "keepBones": [
+          "Head"
+        ],
+        "distance": 0.025
+      }
+    },
+    {
+      "src": "../.sources/outfits/Outfit_Female_Peasant.gltf",
+      "out": "../public/assets/characters/pip-outfit.glb"
+    },
+    {
+      "src": "../.sources/hair/Hair_Buns.gltf",
+      "out": "../public/assets/characters/hair-buns.glb",
+      "keepAlpha": [
+        "MI_Hair_2",
+        "MI_Hair_1"
+      ]
+    }
+  ],
+  "animations": [
+    {
+      "src": "../.sources/ual/UAL1_Standard.glb",
+      "out": "../public/assets/animations/ual1.glb",
+      "clips": [
+        "Idle_Loop",
+        "Walk_Loop",
+        "Interact",
+        "Jump_Start",
+        "Jump_Loop",
+        "Jump_Land",
+        "Dance_Loop",
+        "Spell_Simple_Enter",
+        "Spell_Simple_Idle_Loop",
+        "Spell_Simple_Exit"
+      ]
+    },
+    {
+      "src": "../.sources/ual/UAL2_Standard.glb",
+      "out": "../public/assets/animations/ual2.glb",
+      "clips": [
+        "Idle_Lantern_Loop",
+        "Idle_No_Loop",
+        "Yes",
+        "Idle_FoldArms_Loop"
+      ]
+    }
+  ]
+}

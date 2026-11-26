@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Downloads the CC0 source packs into .sources/ (git-ignored). Only needed to
+# re-run tools/prepare-assets.mjs; the prepared .glb files are committed.
+#
+# Originals (all by Quaternius, CC0 1.0): https://quaternius.com
+#   Universal Base Characters [Standard], Universal Animation Library 1 & 2 [Standard],
+#   Modular Character Outfits - Fantasy.
+# Fetched from public GitHub mirrors because quaternius.com / itch.io are not reachable
+# from our build sandbox. Swap in the official downloads if you have them.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+mkdir -p .sources/ubc .sources/ual .sources/outfits
+raw() { curl -fsSL --retry 3 -o "$2" "$1"; }
+
+M=https://raw.githubusercontent.com/NafisRayan/Animate-Rigged-Humanoid-No-Blender/main
+UBC="$M/Universal%20Base%20Characters%5BStandard%5D/Universal%20Base%20Characters%5BStandard%5D/Base%20Characters/Godot%20-%20UE"
+for f in Superhero_Female_FullBody.gltf Superhero_Female_FullBody.bin Superhero_Male_FullBody.gltf Superhero_Male_FullBody.bin \
+         T_Eye_Brown.png T_Hair_1_BaseColor.png T_Hair_2_BaseColor.png T_Superhero_Female_Dark_BaseColor.png T_Superhero_Male_Dark.png; do
+  raw "$UBC/$f" ".sources/ubc/$f"
+done
+raw "$M/Universal%20Base%20Characters%5BStandard%5D/Universal%20Base%20Characters%5BStandard%5D/License_Standard.txt" .sources/ubc/License.txt
+raw "$M/Universal%20Animation%20Library%5BStandard%5D/Universal%20Animation%20Library%5BStandard%5D/Unreal-Godot/UAL1_Standard.glb" .sources/ual/UAL1_Standard.glb
+raw "$M/Universal%20Animation%20Library%202%5BStandard%5D/Universal%20Animation%20Library%202%5BStandard%5D/Unreal-Godot/UAL2_Standard.glb" .sources/ual/UAL2_Standard.glb
+raw "$M/Universal%20Animation%20Library%202%5BStandard%5D/Universal%20Animation%20Library%202%5BStandard%5D/License.txt" .sources/ual/License.txt
+
+O=https://raw.githubusercontent.com/254684589-max/ooglex-site/main/games/ironcrown/godot/assets/characters/outfits
+for f in Outfit_Female_Peasant.gltf Outfit_Female_Peasant.bin Outfit_Male_Peasant.gltf Outfit_Male_Peasant.bin \
+         Outfit_Female_Ranger.gltf Outfit_Female_Ranger.bin Outfit_Male_Ranger.gltf Outfit_Male_Ranger.bin \
+         T_Peasant_BaseColor.png T_Ranger_BaseColor.png T_Regular_Male_Dark_BaseColor.png; do
+  raw "$O/$f" ".sources/outfits/$f"
+done
+echo "sources ready in .sources/"
