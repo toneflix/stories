@@ -30,8 +30,7 @@ export function SignInDialog({ providers, onClose }: { providers: ProviderId[]; 
         <button type="button" className="icon-btn signin-close" aria-label="Close" onClick={onClose}>
           <CloseIcon />
         </button>
-        <h2>Join the story</h2>
-        <p>Sign in to like, comment and save. Watching stays free and open.</p>
+        <h2>Sign in</h2>
 
         {providers.includes('google') && (
           <button type="button" className="btn btn-light" disabled={busy} onClick={() => signIn('google', { callbackUrl })}>
@@ -59,7 +58,7 @@ export function SignInDialog({ providers, onClose }: { providers: ProviderId[]; 
 
         {providers.includes('dev') && (
           <form className="signin-form" onSubmit={devSignIn}>
-            <label htmlFor="signin-name">Local test account (only on your computer)</label>
+            <label htmlFor="signin-name">Test account (local only)</label>
             <input
               id="signin-name"
               required
@@ -75,10 +74,6 @@ export function SignInDialog({ providers, onClose }: { providers: ProviderId[]; 
         )}
 
         {providers.length === 0 && <p className="muted">Sign-in isn&apos;t set up yet.</p>}
-
-        <button type="button" className="btn-text" onClick={onClose}>
-          Not now
-        </button>
       </div>
     </Sheet>
   );

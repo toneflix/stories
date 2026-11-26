@@ -1033,10 +1033,6 @@ input {
   font-size: 34px;
 }
 
-.feed-end .eyebrow {
-  color: #cde5e3;
-}
-
 @media (max-width: 900px) {
   .feed {
     height: calc(100dvh - var(--nav-h));
@@ -1180,11 +1176,6 @@ input {
 
 .signin h2 {
   font-size: 28px;
-}
-
-.signin > p {
-  color: var(--muted);
-  margin-bottom: 6px;
 }
 
 .signin-close {

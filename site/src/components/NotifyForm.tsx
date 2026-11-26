@@ -20,7 +20,7 @@ export function NotifyForm() {
     }
   }
 
-  if (status === 'done') return <p className="notify-done">Thanks. We&apos;ll be in touch.</p>;
+  if (status === 'done') return <p className="notify-done">You&apos;re on the list.</p>;
 
   return (
     <form className="notify-form" onSubmit={submit}>

@@ -29,7 +29,6 @@ export default function Home() {
 
       <section className="hero wrap">
         <div className="hero-copy">
-          <span className="pill">Toneflix Stories</span>
           <h1>A collection of short interactive films made with Three.js and WebGL.</h1>
           <div className="actions">
             <Link href="/watch" className="btn btn-primary btn-lg">
@@ -64,7 +63,6 @@ export default function Home() {
               <h2>{demo.title}</h2>
             </div>
             <div className="tags">
-              <span>{demo.duration}</span>
               {demo.narrated && <span>Narrated</span>}
               <span>{themeLabel(demo.theme)}</span>
             </div>
@@ -121,7 +119,6 @@ export default function Home() {
         <div className="notify">
           <div>
             <h2>Hear about new stories</h2>
-            <p>We&apos;ll email you when a new one is out. Nothing else.</p>
           </div>
           <NotifyForm />
         </div>
