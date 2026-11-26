@@ -1,3 +1,5 @@
+import { repoUrl } from '@/lib/site';
+
 export type ThemeId = 'post-apocalyptic' | 'folklore' | 'city' | 'sci-fi' | 'mystery';
 
 export const themes: { id: ThemeId; label: string }[] = [
@@ -18,6 +20,7 @@ export type ReleasedStory = Base & {
   poster: string;
   stills: string[];
   liveUrl: string;
+  sourceUrl: string;
 };
 
 export type UpcomingStory = Base & { status: 'coming-soon' };
@@ -25,6 +28,7 @@ export type UpcomingStory = Base & { status: 'coming-soon' };
 export type Story = ReleasedStory | UpcomingStory;
 
 const liveBase = process.env.NEXT_PUBLIC_LIVE_BASE_URL ?? 'https://toneflix.github.io/stories';
+const source = (id: string) => `${repoUrl}/tree/main/src/stories/${id}`;
 
 const released: ReleasedStory[] = [
   {
@@ -39,6 +43,7 @@ const released: ReleasedStory[] = [
     poster: '/media/lantern-keeper/poster.jpg',
     stills: [1, 2, 3, 4].map((n) => `/media/lantern-keeper/still-${n}.jpg`),
     liveUrl: `${liveBase}/stories/lantern-keeper/`,
+    sourceUrl: source('lantern-keeper'),
   },
 ];
 

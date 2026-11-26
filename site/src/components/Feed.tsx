@@ -11,6 +11,7 @@ import {
   ChevronIcon,
   CommentIcon,
   CubeIcon,
+  ForkIcon,
   HeartIcon,
   PauseIcon,
   PlayIcon,
@@ -277,6 +278,11 @@ function FeedItem({
           </span>
           {compact(state.saves)}
         </button>
+        <a className="rail-btn" href={story.sourceUrl} target="_blank" rel="noopener" aria-label="View the code on GitHub">
+          <span className="rail-icon">
+            <ForkIcon size={24} />
+          </span>
+        </a>
         <button type="button" className="rail-btn" aria-label="Share" onClick={onShare}>
           <span className="rail-icon">
             <ShareIcon size={24} />
