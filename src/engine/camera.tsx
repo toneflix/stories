@@ -37,10 +37,19 @@ function shots(keys: CameraKey[]) {
  * Velocity is continuous through keys, so moves read as one camera operator; a `cut` key starts a new shot.
  * `shake` adds a gentle handheld drift (deterministic noise of story time).
  */
+/** `?cam=x,y,z,lookX,lookY,lookZ[,fov]` pins the camera, for framing shots while writing a scene. */
+const PINNED = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('cam')?.split(',').map(Number) : undefined;
+
 export function NarratorCamera({ keys, shake = 0.4 }: { keys: CameraKey[]; shake?: number }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const all = useMemo(() => shots(keys), [keys]);
   useStoryFrame(({ t }) => {
+    if (PINNED) {
+      camera.position.set(PINNED[0], PINNED[1], PINNED[2]);
+      camera.lookAt(PINNED[3], PINNED[4], PINNED[5]);
+      if (PINNED[6] && camera.fov !== PINNED[6]) { camera.fov = PINNED[6]; camera.updateProjectionMatrix(); }
+      return;
+    }
     let tracks = all[0];
     for (const s of all) if (s.from <= t) tracks = s;
     const p = tracks.pos.sample(t), l = tracks.look.sample(t);
