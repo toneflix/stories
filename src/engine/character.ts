@@ -63,6 +63,10 @@ export function useCharacter(spec: CharacterSpec): Character {
     });
     toonify(root, { outline: spec.outline ?? 0.008 });
 
+    // rest orientation of each bone relative to the character, used by lookAt
+    const rootInv = root.getWorldQuaternion(new THREE.Quaternion()).invert();
+    bones.forEach((b) => { b.userData.rest = rootInv.clone().multiply(b.getWorldQuaternion(new THREE.Quaternion())); });
+
     const clips = anims.flatMap((g) => g.animations);
     const mixers = roots.map((r) => new THREE.AnimationMixer(r));
     const actions = mixers.map((mx) => new Map(clips.map((c) => [c.name, mx.clipAction(c)])));
@@ -96,20 +100,24 @@ const _p = new THREE.Vector3(), _f = new THREE.Vector3(), _w = new THREE.Vector3
 const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _qt = new THREE.Quaternion();
 /**
  * Turn a bone (head, neck, chest) towards a world point on top of the animated pose.
- * The turn is measured from the character's facing (its root's +Z), limited to `max`
- * radians and blended in by `weight`. Split a big look over neck + head for a natural feel.
+ * The turn is measured from where the bone currently aims (the character's facing,
+ * carried through the animated pose), limited to `max` radians and blended in by `weight`.
+ * Called on neck then head, the head only closes what the neck left, so turns never stack.
  */
 export function lookAt(bone: THREE.Bone, facing: THREE.Object3D, target: THREE.Vector3, weight = 1, max = 0.9) {
   if (weight <= 0) return;
   bone.updateWorldMatrix(true, false);
   bone.getWorldPosition(_p);
-  _f.set(0, 0, 1).applyQuaternion(facing.getWorldQuaternion(_qa));
+  const world = bone.getWorldQuaternion(_qb);
+  const rest: THREE.Quaternion | undefined = bone.userData.rest;
+  if (rest) _f.set(0, 0, 1).applyQuaternion(_qa.copy(rest).invert()).applyQuaternion(world);
+  else _f.set(0, 0, 1).applyQuaternion(facing.getWorldQuaternion(_qa));
   _w.copy(target).sub(_p).normalize();
   _qt.setFromUnitVectors(_f, _w);
   const angle = 2 * Math.acos(Math.min(1, Math.abs(_qt.w)));
   if (angle > max) _qt.slerp(_qa.identity(), 1 - max / angle).normalize();
   _qt.slerp(_qa.identity(), 1 - weight);
-  const world = bone.getWorldQuaternion(_qb).premultiply(_qt);
+  world.premultiply(_qt);
   bone.quaternion.copy(bone.parent!.getWorldQuaternion(_qa).invert().multiply(world));
   bone.updateMatrixWorld(true);
 }
