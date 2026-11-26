@@ -9,7 +9,7 @@
 # from our build sandbox. Swap in the official downloads if you have them.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-mkdir -p .sources/ubc .sources/ual .sources/outfits
+mkdir -p .sources/ubc .sources/ual .sources/outfits .sources/hair
 raw() { curl -fsSL --retry 3 -o "$2" "$1"; }
 
 M=https://raw.githubusercontent.com/NafisRayan/Animate-Rigged-Humanoid-No-Blender/main
@@ -19,6 +19,12 @@ for f in Superhero_Female_FullBody.gltf Superhero_Female_FullBody.bin Superhero_
   raw "$UBC/$f" ".sources/ubc/$f"
 done
 raw "$M/Universal%20Base%20Characters%5BStandard%5D/Universal%20Base%20Characters%5BStandard%5D/License_Standard.txt" .sources/ubc/License.txt
+HAIR="$M/Universal%20Base%20Characters%5BStandard%5D/Universal%20Base%20Characters%5BStandard%5D/Hairstyles/Origin%20at%200/glTF%20(Godot)"
+for f in Hair_Buns Hair_Beard Hair_Buzzed Hair_Long; do
+  raw "$HAIR/$f.gltf" ".sources/hair/$f.gltf"; raw "$HAIR/$f.bin" ".sources/hair/$f.bin"
+done
+raw "$HAIR/T_Hair_1_BaseColor.png" .sources/hair/T_Hair_1_BaseColor.png
+raw "$HAIR/T_Hair_2_BaseColor.png" .sources/hair/T_Hair_2_BaseColor.png
 raw "$M/Universal%20Animation%20Library%5BStandard%5D/Universal%20Animation%20Library%5BStandard%5D/Unreal-Godot/UAL1_Standard.glb" .sources/ual/UAL1_Standard.glb
 raw "$M/Universal%20Animation%20Library%202%5BStandard%5D/Universal%20Animation%20Library%202%5BStandard%5D/Unreal-Godot/UAL2_Standard.glb" .sources/ual/UAL2_Standard.glb
 raw "$M/Universal%20Animation%20Library%202%5BStandard%5D/Universal%20Animation%20Library%202%5BStandard%5D/License.txt" .sources/ual/License.txt

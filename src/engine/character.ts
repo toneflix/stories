@@ -8,12 +8,14 @@ import type { ClipSample } from './clips';
 export interface CharacterSpec {
   /** Skinned parts sharing one rig, e.g. base body + outfit. The first one is the body. */
   parts: string[];
-  /** Static attachments parented to a bone at load (hair, hats, props). */
-  attach?: { url: string; bone: string; tint?: THREE.ColorRepresentation }[];
+  /** Static attachments parented to a bone at load (hair, hats, props). `tint` multiplies the texture; `paint` replaces it. */
+  attach?: { url: string; bone: string; tint?: THREE.ColorRepresentation; paint?: THREE.ColorRepresentation }[];
   /** glTF files whose animations drive the rig (matched by bone name). */
   animations: string[];
-  /** Recolour materials by name, e.g. eyebrows. */
+  /** Recolour meshes by name, e.g. eyebrows. Multiplies the texture. */
   tints?: Record<string, THREE.ColorRepresentation>;
+  /** Repaint meshes by name in a flat colour, dropping their texture (e.g. to restyle an outfit). */
+  paint?: Record<string, THREE.ColorRepresentation>;
   outline?: number;
 }
 
@@ -44,13 +46,23 @@ export function useCharacter(spec: CharacterSpec): Character {
     const bones = new Map<string, THREE.Bone>();
     roots[0].traverse((o) => { if ((o as THREE.Bone).isBone && !bones.has(o.name)) bones.set(o.name, o as THREE.Bone); });
     const bone = (n: string) => { const b = bones.get(n); if (!b) throw new Error(`no bone ${n}`); return b; };
+    // every part follows the body's bones, so IK and lookAt on the body move the clothes too
+    roots.slice(1).forEach((r) => r.traverse((o) => {
+      const sm = o as THREE.SkinnedMesh;
+      if (!sm.isSkinnedMesh) return;
+      sm.bind(new THREE.Skeleton(sm.skeleton.bones.map((b) => bones.get(b.name) ?? b), sm.skeleton.boneInverses), sm.bindMatrix);
+    }));
 
     // attachments are authored in rest pose, so parent them before any animation runs
     (spec.attach ?? []).forEach((a, i) => {
       const obj = attachments[i].scene.clone(true);
-      if (a.tint) obj.traverse((o) => {
+      if (a.tint || a.paint) obj.traverse((o) => {
         const m = o as THREE.Mesh;
-        if (m.isMesh) { const mat = (m.material as THREE.MeshStandardMaterial).clone(); mat.color.set(a.tint!); m.material = mat; }
+        if (!m.isMesh) return;
+        const mat = (m.material as THREE.MeshStandardMaterial).clone();
+        mat.color.set((a.paint ?? a.tint)!);
+        if (a.paint) mat.map = null;
+        m.material = mat;
       });
       root.add(obj);
       root.updateMatrixWorld(true);
@@ -61,6 +73,10 @@ export function useCharacter(spec: CharacterSpec): Character {
       const m = o as THREE.Mesh;
       if (m.isMesh && spec.tints![m.name]) { m.material = (m.material as THREE.Material).clone(); (m.material as THREE.MeshStandardMaterial).color.set(spec.tints![m.name]); }
     });
+    if (spec.paint) root.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh && spec.paint![m.name]) { const mat = (m.material as THREE.MeshStandardMaterial).clone(); mat.map = null; mat.color.set(spec.paint![m.name]); m.material = mat; }
+    });
     toonify(root, { outline: spec.outline ?? 0.008 });
 
     // rest orientation of each bone relative to the character, used by lookAt
@@ -68,7 +84,7 @@ export function useCharacter(spec: CharacterSpec): Character {
     bones.forEach((b) => { b.userData.rest = rootInv.clone().multiply(b.getWorldQuaternion(new THREE.Quaternion())); });
 
     const clips = anims.flatMap((g) => g.animations);
-    const mixers = roots.map((r) => new THREE.AnimationMixer(r));
+    const mixers = [new THREE.AnimationMixer(roots[0])];
     const actions = mixers.map((mx) => new Map(clips.map((c) => [c.name, mx.clipAction(c)])));
     actions.forEach((m) => m.forEach((a) => { a.play(); a.setEffectiveWeight(0); }));
 
