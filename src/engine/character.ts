@@ -12,8 +12,10 @@ export interface CharacterSpec {
   attach?: { url: string; bone: string; tint?: THREE.ColorRepresentation }[];
   /** glTF files whose animations drive the rig (matched by bone name). */
   animations: string[];
-  /** Recolour materials by name, e.g. eyebrows. */
+  /** Recolour meshes by name, e.g. eyebrows. Multiplies the texture. */
   tints?: Record<string, THREE.ColorRepresentation>;
+  /** Repaint meshes by name in a flat colour, dropping their texture (e.g. to restyle an outfit). */
+  paint?: Record<string, THREE.ColorRepresentation>;
   outline?: number;
 }
 
@@ -60,6 +62,10 @@ export function useCharacter(spec: CharacterSpec): Character {
     if (spec.tints) root.traverse((o) => {
       const m = o as THREE.Mesh;
       if (m.isMesh && spec.tints![m.name]) { m.material = (m.material as THREE.Material).clone(); (m.material as THREE.MeshStandardMaterial).color.set(spec.tints![m.name]); }
+    });
+    if (spec.paint) root.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh && spec.paint![m.name]) { const mat = (m.material as THREE.MeshStandardMaterial).clone(); mat.map = null; mat.color.set(spec.paint![m.name]); m.material = mat; }
     });
     toonify(root, { outline: spec.outline ?? 0.008 });
 
