@@ -1,0 +1,21 @@
+import type { Metadata } from 'next';
+import Image from 'next/image';
+import { StoryGrid } from '@/components/StoryGrid';
+import { stories } from '@/content/stories';
+
+export const metadata: Metadata = { title: 'All stories' };
+
+export default function StoriesPage() {
+  return (
+    <div className="page">
+      <header className="page-head">
+        <Image src="/brand/mark.png" alt="" width={88} height={88} className="page-avatar" />
+        <div>
+          <h1>All stories</h1>
+          <p className="muted">Tap a story to watch it.</p>
+        </div>
+      </header>
+      <StoryGrid stories={stories} />
+    </div>
+  );
+}
