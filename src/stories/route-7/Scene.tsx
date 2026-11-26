@@ -33,7 +33,7 @@ export function Scene() {
       {SHELTERS.map((i) => <Shelter key={i} i={i} />)}
       <Debris />
       <Bus model={model} />
-      <Wake />
+      {!REAL && <Wake />}
       <Driver model={model} />
       <Passenger model={model} />
     </>

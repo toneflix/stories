@@ -77,7 +77,53 @@ export function RealAtmosphere() {
   );
 }
 
-/** Murky floodwater that mirrors the street, with small ripples and a sun path. */
+/** Wake samples: where the bus was, every WAKE_DT seconds, for the last WAKE_N of them. */
+const WAKE_N = 48, WAKE_DT = 0.25;
+
+/**
+ * The bus's wake, worked out from its own path (no fluid simulation, so every render
+ * matches). Each past position sends out a ring of ripples; because the bus outruns the
+ * ripples, the rings stack into the V behind it. Starting and stopping send bigger rings,
+ * and a band of foam hugs the hull, heaviest at the bow when it moves.
+ */
+const WAKE_GLSL = /* glsl */ `
+uniform vec4 uWake[${WAKE_N}];   // xz position, age (s), strength
+uniform vec4 uHull;              // xz centre, heading, speed
+float wakeFoam;
+vec2 wakeSlope(vec2 p) {
+  vec2 g = vec2(0.0);
+  wakeFoam = 0.0;
+  for (int i = 0; i < ${WAKE_N}; i++) {
+    vec4 w = uWake[i];
+    if (w.w <= 0.0) continue;
+    vec2 d = p - w.xy;
+    float r = length(d) + 1e-4;
+    float front = 0.25 + w.z * 1.15;           // ripples travel about a metre a second
+    float x = r - front;
+    // churned water left on the bus's track, fading over a few seconds
+    wakeFoam += w.w * smoothstep(1.1, 0.2, r) * exp(-w.z * 0.9) * 0.9;
+    if (abs(x) > 1.2) continue;
+    // thin rings: they only pile up where neighbours touch, which is the V's two arms
+    float env = exp(-x * x * 5.0) * w.w * exp(-w.z * 0.18) / (1.0 + r * 0.25);
+    float k = 6.0;
+    // slope of env * sin(k x), along the ring's outward direction
+    float dh = env * (k * cos(k * x) - 10.0 * x * sin(k * x));
+    g += dh * d / r;
+    wakeFoam += env * max(0.0, sin(k * x)) * smoothstep(2.0, 0.0, w.z) * 0.8;
+  }
+  // foam round the hull: a band just outside the body, wider at the bow when moving
+  vec2 q = p - uHull.xy;
+  float c = cos(uHull.z), s = sin(uHull.z);
+  vec2 l = vec2(c * q.x - s * q.y, s * q.x + c * q.y);   // x across the bus, y along it
+  vec2 e = abs(l) - vec2(1.0, 2.4);
+  float out_ = length(max(e, 0.0)) + min(max(e.x, e.y), 0.0);
+  float bow = smoothstep(0.5, 2.4, l.y) * uHull.w;
+  wakeFoam += smoothstep(0.25 + bow * 0.12, 0.0, out_) * (0.35 + min(uHull.w, 4.0) * 0.18);
+  return g;
+}
+`;
+
+/** Murky floodwater that mirrors the street, with small ripples, a sun path and the bus's wake. */
 export function RealWater() {
   const water = useMemo(() => {
     const normals = noiseNormalMap(256, 11, 1.2);
@@ -89,7 +135,20 @@ export function RealWater() {
     w.rotation.x = -Math.PI / 2;
     const c = routePose(ROUTE_LENGTH / 2).pos;
     w.position.set(c.x, 0, c.z);
-    w.material.uniforms.size.value = 7;
+    const m = w.material;
+    m.uniforms.size.value = 7;
+    m.uniforms.uWake = { value: Array.from({ length: WAKE_N }, () => new THREE.Vector4()) };
+    m.uniforms.uHull = { value: new THREE.Vector4() };
+    m.fragmentShader = m.fragmentShader
+      .replace('void main() {', WAKE_GLSL + 'void main() {')
+      .replace('vec3 surfaceNormal = normalize( noise.xzy * vec3( 1.5, 1.0, 1.5 ) );', `vec3 surfaceNormal = normalize( noise.xzy * vec3( 1.5, 1.0, 1.5 ) );
+        vec2 wg = wakeSlope( worldPosition.xz );
+        surfaceNormal = normalize( surfaceNormal + vec3( -wg.x, 0.0, -wg.y ) * 0.3 );`)
+      .replace('vec3 outgoingLight = albedo;', `vec3 outgoingLight = albedo;
+        // foam: broken up by the ripple texture, lit by the sky
+        float froth = smoothstep(0.2, 0.7, wakeFoam * (0.7 + 0.9 * noise.x));
+        outgoingLight = mix( outgoingLight, vec3(0.78, 0.8, 0.78) * (0.5 + 0.5 * sunColor), clamp(froth, 0.0, 0.85) );`);
+    m.needsUpdate = true;
     return w;
   }, []);
   useStoryFrame(({ t, idle }) => {
@@ -98,6 +157,19 @@ export function RealWater() {
     u.time.value = idle * 0.35;
     u.sunDirection.value.fromArray(SUN_DIR.sample(day)).normalize();
     col(SKY.sun, day, u.sunColor.value).multiplyScalar(0.45);
+    // wake samples on a fixed grid of story time, so a frame is the same however you reach it
+    const speed = (tt: number) => (BUS_S.sample(tt + 0.1) - BUS_S.sample(tt - 0.1)) / 0.2;
+    const t0 = Math.floor(t / WAKE_DT) * WAKE_DT;
+    (u.uWake.value as THREE.Vector4[]).forEach((v, i) => {
+      const te = t0 - i * WAKE_DT;
+      if (te < 0) { v.set(0, 0, 0, 0); return; }
+      const p = routePose(BUS_S.sample(te));
+      const sp = Math.abs(speed(te)), acc = Math.abs(speed(te + 0.2) - speed(te - 0.2)) / 0.4;
+      // a slow rocking ring even at rest, more with speed, more again when it starts or stops
+      v.set(p.pos.x, p.pos.z, t - te, 0.05 + Math.min(sp, 5) * 0.06 + Math.min(acc, 3) * 0.08);
+    });
+    const p = routePose(BUS_S.sample(t));
+    u.uHull.value.set(p.pos.x, p.pos.z, p.heading, Math.abs(speed(t)));
   });
   return <primitive object={water} />;
 }
