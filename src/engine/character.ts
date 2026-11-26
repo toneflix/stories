@@ -17,6 +17,8 @@ export interface CharacterSpec {
   /** Repaint meshes by name in a flat colour, dropping their texture (e.g. to restyle an outfit). */
   paint?: Record<string, THREE.ColorRepresentation>;
   outline?: number;
+  /** Rig bone names for the names a scene asks for (e.g. Head → Bip01_Head), for rigs other than the house one. */
+  boneMap?: Record<string, string>;
 }
 
 export interface Character {
@@ -45,7 +47,7 @@ export function useCharacter(spec: CharacterSpec): Character {
 
     const bones = new Map<string, THREE.Bone>();
     roots[0].traverse((o) => { if ((o as THREE.Bone).isBone && !bones.has(o.name)) bones.set(o.name, o as THREE.Bone); });
-    const bone = (n: string) => { const b = bones.get(n); if (!b) throw new Error(`no bone ${n}`); return b; };
+    const bone = (n: string) => { const b = bones.get(spec.boneMap?.[n] ?? n); if (!b) throw new Error(`no bone ${n}`); return b; };
     // every part follows the body's bones, so IK and lookAt on the body move the clothes too
     roots.slice(1).forEach((r) => r.traverse((o) => {
       const sm = o as THREE.SkinnedMesh;
