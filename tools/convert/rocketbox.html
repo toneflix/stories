@@ -1,0 +1,56 @@
+<!doctype html><meta charset="utf-8"><body><script type="module">
+// Converts Rocketbox FBX files to glTF in the browser with three.js's own loaders, so no
+// native converter is needed. Driven by tools/convert-rocketbox.mjs.
+import * as THREE from 'three';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { TGALoader } from 'three/addons/loaders/TGALoader.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+const exportGlb = (obj, animations = []) => new GLTFExporter().parseAsync(obj, { binary: true, animations, maxTextureSize: 1024, onlyVisible: false });
+/** TGA textures load as raw pixel data; the exporter needs something it can draw. */
+const drawable = (t) => {
+  if (!t || !t.image?.data) return t;
+  const { width, height, data } = t.image;
+  const cv = document.createElement('canvas'); cv.width = width; cv.height = height;
+  cv.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(data.buffer, data.byteOffset, width * height * 4), width, height), 0, 0);
+  const c = new THREE.CanvasTexture(cv); c.flipY = t.flipY; c.colorSpace = t.colorSpace; c.wrapS = t.wrapS; c.wrapT = t.wrapT;
+  return c;
+};
+const toBase64 = (buf) => { let s = ''; const b = new Uint8Array(buf); for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(s); };
+
+/** A Rocketbox avatar: centimetres to metres, Phong to PBR, opacity texture as alpha. */
+window.avatar = async (dir, name) => {
+  const m = new THREE.LoadingManager();
+  m.addHandler(/\.tga$/i, new TGALoader(m));
+  m.setURLModifier((u) => (/\.tga$/i.test(u) ? `${dir}/Textures/${u.split(/[\\/]/).pop()}` : u));
+  const fbx = await new FBXLoader(m).loadAsync(`${dir}/${name}.fbx`);
+  await new Promise((res) => (m.onLoad = res, setTimeout(res, 4000)));
+  fbx.traverse((o) => {
+    if (!o.isMesh) return;
+    o.material = [].concat(o.material).map((p) => {
+      const alpha = /opacity/i.test(p.name);
+      const s = new THREE.MeshStandardMaterial({ name: p.name, map: drawable(p.map), normalMap: alpha ? null : drawable(p.normalMap), roughness: 0.7, metalness: 0, side: alpha ? THREE.DoubleSide : THREE.FrontSide });
+      if (s.map) s.map.colorSpace = THREE.SRGBColorSpace;
+      if (alpha) { s.alphaTest = 0.5; s.transparent = false; }
+      return s;
+    });
+    if (o.material.length === 1) o.material = o.material[0];
+  });
+  const root = new THREE.Group(); root.name = name; root.scale.setScalar(0.01); root.add(fbx);
+  return toBase64(await exportGlb(root));
+};
+
+/** A Rocketbox clip on the bare skeleton, renamed; `inPlace` drops the walk's forward travel. */
+window.clip = async (url, rename, inPlace) => {
+  const fbx = await new FBXLoader().loadAsync(url);
+  const clip = fbx.animations[0];
+  clip.name = rename;
+  if (inPlace) for (const t of clip.tracks) if (/Bip01\.position$/.test(t.name)) {
+    for (let i = 0; i < t.values.length; i += 3) { t.values[i] = t.values[0]; t.values[i + 1] = t.values[1]; }
+  }
+  fbx.traverse((o) => { if (o.isMesh) o.visible = false; });
+  const root = new THREE.Group(); root.name = 'rig'; root.scale.setScalar(0.01); root.add(fbx);
+  return toBase64(await exportGlb(root, [clip]));
+};
+document.documentElement.dataset.ready = '1';
+</script></body>

@@ -1,0 +1,13 @@
+{
+  "avatars": [
+    { "dir": "../.sources/rocketbox/avatars/Male_Adult_12", "name": "Male_Adult_12", "out": "../public/assets/characters/rb-ayo.glb" },
+    { "dir": "../.sources/rocketbox/avatars/Female_Party_02", "name": "Female_Party_02", "out": "../public/assets/characters/rb-passenger.glb" }
+  ],
+  "clips": [
+    { "src": "../.sources/rocketbox/anims/m_sit_chair_idle_neutral_01.max.fbx", "name": "Driving_Loop", "out": "../public/assets/animations/rb-ayo-drive.glb" },
+    { "src": "../.sources/rocketbox/anims/f_walk_neutral_01.max.fbx", "name": "Walk_Loop", "inPlace": true, "out": "../public/assets/animations/rb-her-walk.glb" },
+    { "src": "../.sources/rocketbox/anims/f_idle_neutral_01.max.fbx", "name": "Idle_Loop", "out": "../public/assets/animations/rb-her-idle.glb" },
+    { "src": "../.sources/rocketbox/anims/f_sit_chair_idle_neutral_01.max.fbx", "name": "Sitting_Idle_Loop", "out": "../public/assets/animations/rb-her-sit.glb" },
+    { "src": "../.sources/rocketbox/anims/f_sit_chair_gestic_shrug_01.max.fbx", "name": "Sitting_Talking_Loop", "out": "../public/assets/animations/rb-her-sit-talk.glb" }
+  ]
+}
