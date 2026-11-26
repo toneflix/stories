@@ -59,12 +59,11 @@ A `wait` cue holds story time until the viewer clicks a target (`useHitTarget('l
 
 ### Narration
 
-Lines live in `src/stories/<id>/narration.json`. Generate placeholder voice locally with [Kokoro](https://github.com/thewh1teagle/kokoro-onnx) (Apache-2.0):
+Lines live in `src/stories/<id>/narration.json`. Generate the voice locally with [Chatterbox](https://github.com/resemble-ai/chatterbox) (MIT). It imitates a short reference recording from `assets/voices/`: `narrator` (default) or `narrator-alt`. Set `"voice"` per file or per line.
 
 ```bash
-pip install kokoro-onnx soundfile
-# model files from github.com/thewh1teagle/kokoro-onnx/releases (model-files-v1.0) into .models/kokoro/
-npm run narrate -- lantern-keeper
+pip install chatterbox-tts "setuptools<80"   # Python 3.11
+npm run narrate -- lantern-keeper            # add --only l2,l4 to redo single lines
 ```
 
 To use a recorded voice instead, drop the clips in `public/stories/<id>/narration/` and update `manifest.json` (file and duration per line).
