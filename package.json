@@ -1,0 +1,38 @@
+{
+  "name": "toneflix-stories",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Short interactive films built with Three.js. Each story plays live in the browser and exports to video from the narrator's camera.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p . && vite build",
+    "preview": "vite preview",
+    "narrate": "python3 tools/narrate.py",
+    "export": "node tools/export.mjs",
+    "typecheck": "tsc -p .",
+    "assets": "node tools/prepare-assets.mjs tools/assets.config.json"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "@react-three/postprocessing": "^3.2.2",
+    "gsap": "^3.13.0",
+    "postprocessing": "^6.39.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.187.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "playwright": "1.63.0",
+    "typescript": "^5.9.3",
+    "vite": "8.4.0"
+  }
+}
