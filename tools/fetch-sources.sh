@@ -36,3 +36,30 @@ for f in Outfit_Female_Peasant.gltf Outfit_Female_Peasant.bin Outfit_Male_Peasan
   raw "$O/$f" ".sources/outfits/$f"
 done
 echo "sources ready in .sources/"
+
+# Realistic props (CC BY 4.0, credited in assets/CREDITS.md), from the Objaverse 1.0
+# snapshot of Sketchfab on Hugging Face (allenai/objaverse).
+mkdir -p .sources/props
+OBJ=https://huggingface.co/datasets/allenai/objaverse/resolve/main/glbs
+raw "$OBJ/000-061/a08d416576c64bec96b10fd889d6d274.glb" .sources/props/vw-t3.glb
+raw "$OBJ/000-075/dd400ed693cf416e940c5b8e3107205e.glb" .sources/props/old-residential.glb
+raw "$OBJ/000-056/e2b6f532e1fe4f7280890971d78183f4.glb" .sources/props/modular-slums.glb
+raw "$OBJ/000-008/e902e0af80804d01924387da6af8eecf.glb" .sources/props/slum-house.glb
+
+# Realistic people (MIT): Microsoft Rocketbox avatars and animations, from GitHub.
+# Only the files we use are checked out (the full repository is several GB).
+RB=.sources/rocketbox/repo
+if [ ! -d "$RB" ]; then
+  git clone -q --filter=blob:none --no-checkout --depth 1 https://github.com/microsoft/Microsoft-Rocketbox.git "$RB"
+fi
+AV=Assets/Avatars/Adults; ST=Assets/Animations/all_animations_max_motextr_static; XY=Assets/Animations/all_animations_max_motextr_xy
+ANIMS="$ST/m_sit_chair_idle_neutral_01.max.fbx $ST/m_sit_chair_gestic_shrug_01.max.fbx $ST/m_idle_neutral_01.max.fbx $ST/f_sit_chair_idle_neutral_01.max.fbx $ST/f_sit_chair_gestic_shrug_01.max.fbx $ST/f_idle_neutral_01.max.fbx $ST/f_wave_01.max.fbx $XY/f_walk_neutral_01.max.fbx"
+git -C "$RB" sparse-checkout set --no-cone "$AV/Male_Adult_12/Export/Male_Adult_12.fbx" "$AV/Male_Adult_12/Textures/*" "$AV/Female_Party_02/Export/Female_Party_02.fbx" "$AV/Female_Party_02/Textures/*" $ANIMS
+git -C "$RB" checkout -q HEAD
+mkdir -p .sources/rocketbox/avatars .sources/rocketbox/anims
+for a in Male_Adult_12 Female_Party_02; do
+  mkdir -p ".sources/rocketbox/avatars/$a"
+  cp "$RB/$AV/$a/Export/$a.fbx" ".sources/rocketbox/avatars/$a/"
+  cp -r "$RB/$AV/$a/Textures" ".sources/rocketbox/avatars/$a/"
+done
+for f in $ANIMS; do cp "$RB/$f" .sources/rocketbox/anims/; done

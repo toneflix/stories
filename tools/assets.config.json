@@ -126,5 +126,33 @@
         "Idle_TalkingPhone_Loop"
       ]
     }
+  ],
+  "props": [
+    {
+      "src": "../.sources/props/vw-t3.glb",
+      "out": "../public/assets/props/vw-t3.glb",
+      "textureSize": 1024
+    },
+    {
+      "src": "../.sources/props/old-residential.glb",
+      "out": "../public/assets/props/old-residential.glb",
+      "textureSize": 1024,
+      "simplify": 0.35,
+      "simplifyError": 0.01
+    },
+    {
+      "src": "../.sources/props/modular-slums.glb",
+      "out": "../public/assets/props/modular-slums.glb",
+      "textureSize": 512,
+      "keepParts": true
+    },
+    {
+      "src": "../.sources/props/slum-house.glb",
+      "out": "../public/assets/props/slum-house.glb",
+      "textureSize": 1024,
+      "drop": "^Ground",
+      "simplify": 0.3,
+      "simplifyError": 0.01
+    }
   ]
 }

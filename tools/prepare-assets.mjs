@@ -3,11 +3,15 @@
 //  - characters: keep base-colour textures only (cel shading ignores normal/roughness maps), resize to 1024px
 //  - animations: keep only the clips a story uses, drop the mannequin mesh
 //
+//  - props: static models (buildings, vehicles): drop unwanted parts, shrink textures, optionally simplify
+//
 // Usage: node tools/prepare-assets.mjs <config.json>
 // See assets/README.md for where the source packs come from.
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { prune, dedup, resample } from '@gltf-transform/functions';
+import { prune, dedup, resample, weld, simplify, flatten, join, quantize } from '@gltf-transform/functions';
+import { EXTMeshoptCompression } from '@gltf-transform/extensions';
+import { MeshoptSimplifier, MeshoptEncoder } from 'meshoptimizer';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -148,4 +152,28 @@ for (const a of cfg.animations ?? []) {
   const missing = a.clips.filter((x) => !got.includes(x));
   if (missing.length) throw new Error(`missing clips in ${a.src}: ${missing}`);
   console.log(a.out, (fs.statSync(r(a.out)).size / 1024).toFixed(0), 'KB', got.join(', '));
+}
+
+for (const p of cfg.props ?? []) {
+  const doc = await io.read(r(p.src));
+  const drop = p.drop ? new RegExp(p.drop, 'i') : null;
+  if (drop) for (const n of doc.getRoot().listNodes()) if (drop.test(n.getName())) n.dispose();
+  // kits keep one node per piece so a scene can place them one by one
+  await doc.transform(prune(), dedup(), ...(p.keepParts ? [] : [flatten(), join()]), weld());
+  if (p.simplify) await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: p.simplify, error: p.simplifyError ?? 0.002 }));
+  const size = p.textureSize ?? 1024;
+  for (const t of doc.getRoot().listTextures()) {
+    const [w] = t.getSize() ?? [size];
+    if (w <= size && t.getMimeType() === 'image/jpeg') continue;
+    const alpha = t.getMimeType() === 'image/png' && doc.getRoot().listMaterials().some((m) => m.getBaseColorTexture() === t && m.getAlphaMode() !== 'OPAQUE');
+    t.setImage(new Uint8Array(resize(Buffer.from(t.getImage()), Math.min(w, size), alpha ? 'image/png' : 'image/jpeg')));
+    t.setMimeType(alpha ? 'image/png' : 'image/jpeg');
+  }
+  // quantized, meshopt-compressed geometry: a few times smaller, decoded by the glTF loader
+  await doc.transform(prune(), quantize());
+  doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.FILTER });
+  await MeshoptEncoder.ready;
+  await io.registerDependencies({ 'meshopt.encoder': MeshoptEncoder }).write(r(p.out), doc);
+  const tris = doc.getRoot().listMeshes().flatMap((m) => m.listPrimitives()).reduce((a, q) => a + (q.getIndices()?.getCount() ?? q.getAttribute('POSITION').getCount()) / 3, 0);
+  console.log(p.out, (fs.statSync(r(p.out)).size / 1024).toFixed(0), 'KB', Math.round(tris), 'triangles');
 }
