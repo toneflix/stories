@@ -358,8 +358,11 @@ function Driver({ model }: { model: BusModel }) {
       const seat = model.driverSeat;
       ade.root.position.set(seat.x - hip.x, seat.y + SEATED_HIP - hip.y, seat.z - hip.z);
       model.group.add(ade.root);
-      model.wheelMount.position.set(seat.x, seat.y + 0.42, seat.z + 0.42);
-      model.wheelMount.rotation.x = -0.45;
+      // a big, low-tilted van wheel at chest height; the seat is already lowered with the cabin,
+      // so undo the cabin's own drop to place it in cabin space
+      model.wheelMount.position.set(seat.x, seat.y - model.cabin.position.y + 0.5, seat.z + 0.4);
+      model.wheelMount.rotation.x = 0.95;
+      model.wheelMount.scale.setScalar(1.15);
       return;
     }
     const seat = model.driverSeat;
@@ -393,9 +396,15 @@ function Driver({ model }: { model: BusModel }) {
     model.group.updateMatrixWorld(true);
     ade.pose(DRIVER_CLIPS.sample(t, idle));
     if (REAL) {
+      // the wheel follows the road's bends, with a little constant correcting; hands turn with it
+      const s0 = BUS_S.sample(t);
+      const bend = routePose(s0 + 3).heading - routePose(s0).heading;
+      const steer = clamp(bend * 6, -0.9, 0.9) + Math.sin(idle * 0.9) * 0.05 + Math.sin(idle * 2.3) * 0.02;
+      model.wheelMount.children[0].rotation.z = steer;
       // both hands on the rim, elbows out and down
       for (const side of [-1, 1]) {
-        const grip = model.wheelMount.localToWorld(tmp.a.set(side * 0.17, -0.03, 0));
+        const a = Math.atan2(0.05, side * 0.17) + steer;
+        const grip = model.wheelMount.localToWorld(tmp.a.set(Math.cos(a) * 0.177, Math.sin(a) * 0.177, 0));
         const pole = at(model.driverSeat.x + side * 0.6, model.driverSeat.y - 0.2, model.driverSeat.z + 0.1, tmp.b);
         const lr = side > 0 ? 'l' : 'r';
         solveTwoBone(ade.bone(`upperarm_${lr}`), ade.bone(`lowerarm_${lr}`), ade.bone(`hand_${lr}`), grip.clone(), pole.clone(), 1);
