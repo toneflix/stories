@@ -50,12 +50,15 @@ export class Track<V extends number | number[]> {
 /**
  * Smooth vector track for cameras: cubic Hermite through every key with
  * Catmull-Rom tangents scaled for uneven key spacing, so velocity is continuous
- * (no stop-start at keys). First and last keys ease in and out.
+ * (no stop-start at keys). First and last keys ease in and out unless told to flow
+ * (a shot that starts or ends on a cut is already moving).
  */
 export class SplineTrack {
   keys: Key<number[]>[];
-  constructor(keys: Key<number[]>[]) {
+  ends: { easeIn: boolean; easeOut: boolean };
+  constructor(keys: Key<number[]>[], ends: { easeIn?: boolean; easeOut?: boolean } = {}) {
     this.keys = [...keys].sort((a, b) => a.t - b.t);
+    this.ends = { easeIn: true, easeOut: true, ...ends };
   }
   sample(t: number): number[] {
     const k = this.keys, n = k.length;
@@ -66,7 +69,9 @@ export class SplineTrack {
     const p0 = k[i], p1 = k[i + 1];
     const dt = p1.t - p0.t;
     const tangent = (j: number): number[] => {
-      if (j === 0 || j === n - 1 || k[j].hold) return k[j].v.map(() => 0);
+      if (k[j].hold) return k[j].v.map(() => 0);
+      if (j === 0) return this.ends.easeIn ? k[0].v.map(() => 0) : k[0].v.map((x, d) => (k[1].v[d] - x) / (k[1].t - k[0].t));
+      if (j === n - 1) return this.ends.easeOut ? k[j].v.map(() => 0) : k[j].v.map((x, d) => (x - k[j - 1].v[d]) / (k[j].t - k[j - 1].t));
       const a = k[j - 1], b = k[j + 1];
       return k[j].v.map((_, d) => (b.v[d] - a.v[d]) / (b.t - a.t));
     };

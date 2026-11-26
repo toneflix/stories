@@ -21,12 +21,15 @@ function shots(keys: CameraKey[]) {
   const sorted = [...keys].sort((a, b) => a.t - b.t);
   const out: CameraKey[][] = [];
   for (const k of sorted) if (k.cut || !out.length) out.push([k]); else out[out.length - 1].push(k);
-  return out.map((ks) => ({
-    from: ks[0].t,
-    pos: new SplineTrack(ks.map((k) => ({ t: k.t, v: k.pos, hold: k.hold }))),
-    look: new SplineTrack(ks.map((k) => ({ t: k.t, v: k.look, hold: k.hold }))),
-    fov: new Track(ks.map((k) => ({ t: k.t, v: k.fov ?? 45 }))),
-  }));
+  return out.map((ks, i) => {
+    const ends = { easeIn: i === 0, easeOut: i === out.length - 1 };
+    return {
+      from: ks[0].t,
+      pos: new SplineTrack(ks.map((k) => ({ t: k.t, v: k.pos, hold: k.hold })), ends),
+      look: new SplineTrack(ks.map((k) => ({ t: k.t, v: k.look, hold: k.hold })), ends),
+      fov: new Track(ks.map((k) => ({ t: k.t, v: k.fov ?? 45 }))),
+    };
+  });
 }
 
 /**
