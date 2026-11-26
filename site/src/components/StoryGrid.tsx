@@ -36,7 +36,7 @@ export function StoryGrid({ stories, filters = true }: { stories: Story[]; filte
                 <span className="tile-info">
                   <strong>{s.title}</strong>
                   <span>
-                    {themeLabel(s.theme)} · {s.duration}
+                    {themeLabel(s.theme)}
                   </span>
                 </span>
               </Link>

@@ -17,17 +17,14 @@ export default async function SavedPage() {
   return (
     <div className="page">
       <header className="page-head">
-        <div>
-          <h1>Saved</h1>
-          <p className="muted">Stories you saved to watch again.</p>
-        </div>
+        <h1>Saved</h1>
       </header>
       {!userId ? (
         <SignInPrompt />
       ) : saved.length ? (
         <StoryGrid stories={saved} filters={false} />
       ) : (
-        <p className="muted">Nothing saved yet. Tap the bookmark on a story to keep it here.</p>
+        <p className="muted">Nothing saved yet.</p>
       )}
     </div>
   );

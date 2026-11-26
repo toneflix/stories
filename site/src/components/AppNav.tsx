@@ -4,7 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
-import { BookmarkIcon, GridIcon, HomeIcon, UserIcon } from './Icons';
+import { repoUrl } from '@/lib/site';
+import { BookmarkIcon, GitHubIcon, GridIcon, HomeIcon, UserIcon } from './Icons';
 import { useAuthGate } from './Providers';
 
 const links = [
@@ -52,7 +53,13 @@ export function AppNav() {
           )}
         </li>
       </ul>
-      <p className="app-nav-foot">© {new Date().getFullYear()} Toneflix Stories</p>
+      <div className="app-nav-foot">
+        <a href={repoUrl}>
+          <GitHubIcon size={16} />
+          Open source on GitHub
+        </a>
+        <p>© {new Date().getFullYear()} Toneflix Stories</p>
+      </div>
     </nav>
   );
 }

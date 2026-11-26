@@ -597,8 +597,20 @@ input {
 }
 
 .site-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--subtle);
   text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--text);
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
 }
 
 @media (max-width: 900px) {
@@ -740,8 +752,28 @@ input {
 .app-nav-foot {
   margin-top: auto;
   padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   font-size: 12px;
   color: var(--faint);
+}
+
+.app-nav-foot p {
+  margin: 0;
+}
+
+.app-nav-foot a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--subtle);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.app-nav-foot a:hover {
+  color: var(--text);
 }
 
 .app-main {
@@ -1033,10 +1065,6 @@ input {
   font-size: 34px;
 }
 
-.feed-end .eyebrow {
-  color: #cde5e3;
-}
-
 @media (max-width: 900px) {
   .feed {
     height: calc(100dvh - var(--nav-h));
@@ -1180,11 +1208,6 @@ input {
 
 .signin h2 {
   font-size: 28px;
-}
-
-.signin > p {
-  color: var(--muted);
-  margin-bottom: 6px;
 }
 
 .signin-close {

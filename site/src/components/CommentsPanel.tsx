@@ -76,7 +76,7 @@ export function CommentsPanel({
 
         <ul className="comments-list">
           {items === null && <li className="muted">Loading…</li>}
-          {items?.length === 0 && <li className="muted comments-empty">No comments yet. Be the first.</li>}
+          {items?.length === 0 && <li className="muted comments-empty">No comments yet.</li>}
           {items?.map((c) => (
             <li key={c.id} className="comment">
               {c.author.image ? (
