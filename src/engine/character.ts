@@ -46,6 +46,12 @@ export function useCharacter(spec: CharacterSpec): Character {
     const bones = new Map<string, THREE.Bone>();
     roots[0].traverse((o) => { if ((o as THREE.Bone).isBone && !bones.has(o.name)) bones.set(o.name, o as THREE.Bone); });
     const bone = (n: string) => { const b = bones.get(n); if (!b) throw new Error(`no bone ${n}`); return b; };
+    // every part follows the body's bones, so IK and lookAt on the body move the clothes too
+    roots.slice(1).forEach((r) => r.traverse((o) => {
+      const sm = o as THREE.SkinnedMesh;
+      if (!sm.isSkinnedMesh) return;
+      sm.bind(new THREE.Skeleton(sm.skeleton.bones.map((b) => bones.get(b.name) ?? b), sm.skeleton.boneInverses), sm.bindMatrix);
+    }));
 
     // attachments are authored in rest pose, so parent them before any animation runs
     (spec.attach ?? []).forEach((a, i) => {
@@ -74,7 +80,7 @@ export function useCharacter(spec: CharacterSpec): Character {
     bones.forEach((b) => { b.userData.rest = rootInv.clone().multiply(b.getWorldQuaternion(new THREE.Quaternion())); });
 
     const clips = anims.flatMap((g) => g.animations);
-    const mixers = roots.map((r) => new THREE.AnimationMixer(r));
+    const mixers = [new THREE.AnimationMixer(roots[0])];
     const actions = mixers.map((mx) => new Map(clips.map((c) => [c.name, mx.clipAction(c)])));
     actions.forEach((m) => m.forEach((a) => { a.play(); a.setEffectiveWeight(0); }));
 
