@@ -4,6 +4,7 @@
 //   npm run export -- lantern-keeper                # 720x1280, 30 fps → out/lantern-keeper.mp4
 //   npm run export -- lantern-keeper --hd           # 1080x1920
 //   npm run export -- lantern-keeper --from 20 --to 26 --no-subs
+//   npm run export -- route-7 --look real         # the realistic look test
 //
 // How: starts Vite, opens the story in headless Chromium with ?capture, and for every
 // frame calls window.__story.renderAt(t) and takes a screenshot (canvas + subtitles/title
@@ -36,7 +37,7 @@ const base = server.resolvedUrls.local[0];
 const browser = await chromium.launch({ args: flag('gpu') ? ['--use-angle=default', '--enable-gpu'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 page.on('pageerror', (e) => console.error('page error:', e.message));
-await page.goto(`${base}stories/${id}/?capture&w=${W}&h=${H}${flag('no-subs') ? '&subs=0' : ''}`);
+await page.goto(`${base}stories/${id}/?capture&w=${W}&h=${H}${flag('no-subs') ? '&subs=0' : ''}${opt('look') ? '&look=' + opt('look') : ''}`);
 await page.waitForFunction(() => document.documentElement.dataset.ready === '1', null, { timeout: 180_000 });
 const info = await page.evaluate(() => ({ duration: window.__story.duration, title: window.__story.title }));
 if (info.duration > MAX_DURATION) throw new Error(`${id} is ${info.duration}s; stories must be under 3:33 (${MAX_DURATION}s)`);
