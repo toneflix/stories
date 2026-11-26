@@ -1,7 +1,9 @@
 {
-  "voice": "bm_george",
+  "voice": "bm_lewis",
   "lang": "en-gb",
-  "speed": 0.92,
+  "speed": 0.9,
+  "pitch": 0.93,
+  "warm": true,
   "lines": [
     { "id": "l1", "text": "At the edge of the valley, where the hills fold into the dusk, there lived a small keeper of lanterns." },
     { "id": "l2", "text": "Every evening, Pip climbed the old hill to wake the great lantern, so that travellers below could find their way home." },

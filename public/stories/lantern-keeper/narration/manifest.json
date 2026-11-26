@@ -1,27 +1,27 @@
 {
   "l1": {
     "file": "l1.mp3",
-    "duration": 6.4,
+    "duration": 6.36,
     "text": "At the edge of the valley, where the hills fold into the dusk, there lived a small keeper of lanterns."
   },
   "l2": {
     "file": "l2.mp3",
-    "duration": 7.275,
+    "duration": 7.32,
     "text": "Every evening, Pip climbed the old hill to wake the great lantern, so that travellers below could find their way home."
   },
   "l3": {
     "file": "l3.mp3",
-    "duration": 2.688,
+    "duration": 2.52,
     "text": "But tonight, the flame would not catch."
   },
   "l4": {
     "file": "l4.mp3",
-    "duration": 4.16,
+    "duration": 4.296,
     "text": "So the fireflies came, one by one, and lent it their light."
   },
   "l5": {
     "file": "l5.mp3",
-    "duration": 2.837,
+    "duration": 2.808,
     "text": "And far below, every window answered."
   }
 }
