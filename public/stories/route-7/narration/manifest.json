@@ -1,0 +1,62 @@
+{
+  "r1": {
+    "file": "r1.mp3",
+    "duration": 3.024,
+    "text": "When the water came, everyone left Lagos."
+  },
+  "r2": {
+    "file": "r2.mp3",
+    "duration": 5.616,
+    "text": "Everyone except Baba Ayo. He had a bus, a route, and thirty years of habit."
+  },
+  "r3": {
+    "file": "r3.mp3",
+    "duration": 5.304,
+    "text": "So every morning he drove Route 7. He stopped at every stop, and he waited."
+  },
+  "r4": {
+    "file": "r4.mp3",
+    "duration": 1.656,
+    "text": "Nobody ever came."
+  },
+  "r5": {
+    "file": "r5.mp3",
+    "duration": 3.432,
+    "text": "Then one evening, at the last stop, someone did."
+  },
+  "a1": {
+    "file": "a1.mp3",
+    "duration": 1.704,
+    "text": "Where are you going, my daughter?"
+  },
+  "p1": {
+    "file": "p1.mp3",
+    "duration": 2.448,
+    "text": "Anywhere. I didn't want to be alone tonight."
+  },
+  "a2": {
+    "file": "a2.mp3",
+    "duration": 1.584,
+    "text": "Then you are on the right bus."
+  },
+  "p2": {
+    "file": "p2.mp3",
+    "duration": 1.392,
+    "text": "Here. For the fare."
+  },
+  "a3": {
+    "file": "a3.mp3",
+    "duration": 1.752,
+    "text": "My first fare in two years."
+  },
+  "a4": {
+    "file": "a4.mp3",
+    "duration": 1.512,
+    "text": "Sit well. We are going."
+  },
+  "r7": {
+    "file": "r7.mp3",
+    "duration": 2.088,
+    "text": "Route 7 was still running."
+  }
+}

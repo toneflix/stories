@@ -1,0 +1,21 @@
+{
+  "voice": "bm_lewis",
+  "lang": "en-gb",
+  "speed": 0.9,
+  "pitch": 0.93,
+  "warm": true,
+  "lines": [
+    { "id": "r1", "text": "When the water came, everyone left Lagos." },
+    { "id": "r2", "text": "Everyone except Baba Ayo. He had a bus, a route, and thirty years of habit." },
+    { "id": "r3", "text": "So every morning he drove Route 7. He stopped at every stop, and he waited." },
+    { "id": "r4", "text": "Nobody ever came." },
+    { "id": "r5", "text": "Then one evening, at the last stop, someone did." },
+    { "id": "a1", "voice": "am_fenrir", "lang": "en-us", "pitch": 0.88, "speed": 0.85, "text": "Where are you going, my daughter?" },
+    { "id": "p1", "voice": "bf_emma", "pitch": 1, "speed": 0.95, "text": "Anywhere. I didn't want to be alone tonight." },
+    { "id": "a2", "voice": "am_fenrir", "lang": "en-us", "pitch": 0.88, "speed": 0.85, "text": "Then you are on the right bus." },
+    { "id": "p2", "voice": "bf_emma", "pitch": 1, "speed": 0.95, "text": "Here. For the fare." },
+    { "id": "a3", "voice": "am_fenrir", "lang": "en-us", "pitch": 0.88, "speed": 0.85, "text": "My first fare in two years." },
+    { "id": "a4", "voice": "am_fenrir", "lang": "en-us", "pitch": 0.88, "speed": 0.85, "text": "Sit well. We are going." },
+    { "id": "r7", "text": "Route 7 was still running." }
+  ]
+}
