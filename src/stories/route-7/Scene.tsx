@@ -14,17 +14,20 @@ import { B, BUS_S, BOARDED, CAMERA, DRIVER_CLIPS, PASSENGER_CLIPS, FARE } from '
 import { BUS, ROUTE_LENGTH, routePose, shelterPose, glowTexture } from './world';
 import { buildCity, buildPalms, buildPoles, buildShelter, SHELTERS } from './city';
 import { buildBus, type BusModel } from './bus';
+import { REAL } from '../../engine/look';
+import { RealAtmosphere, RealWater, Skyline, weather, polishBus } from './real';
 
 const asset = (p: string) => publicUrl(`assets/${p}`);
 
 export function Scene() {
-  const model = useMemo(buildBus, []);
+  const model = useMemo(() => { const m = buildBus(); if (REAL) polishBus(m.group); return m; }, []);
   return (
     <>
       <NarratorCamera keys={CAMERA} shake={0.5} />
-      <Atmosphere />
-      <Water />
+      {REAL ? <RealAtmosphere /> : <Atmosphere />}
+      {REAL ? <RealWater /> : <Water />}
       <City />
+      {REAL && <Skyline />}
       {SHELTERS.map((i) => <Shelter key={i} i={i} />)}
       <Debris />
       <Bus model={model} />
@@ -39,7 +42,7 @@ export function Scene() {
 /** Palettes at day = 0 (dawn), 1 (midday), 2 (sunset), 2.4 (dusk). */
 const DAY = [0, 1, 2, 2.4];
 const palette = (cols: string[]) => new Track<number[]>(cols.map((c, i) => ({ t: DAY[i], v: new THREE.Color(c).toArray(), ease: 'linear' })));
-const SKY = {
+export const SKY = {
   top: palette(['#5b6fa8', '#3f8fd8', '#4b4f8f', '#2a2a5a']),
   horizon: palette(['#f3b7a0', '#bfe3f2', '#ff9d5c', '#e0704f']),
   sun: palette(['#ffc9a3', '#fff6e0', '#ffb070', '#ff8a5a']),
@@ -51,10 +54,10 @@ const SKY = {
 };
 const SUN_I = new Track<number>([{ t: 0, v: 1.3 }, { t: 1, v: 2.4 }, { t: 2, v: 1.8 }, { t: 2.4, v: 1.0 }].map((k) => ({ ...k, ease: 'linear' })));
 /** Sun direction: low behind the bus at dawn, high at noon, low ahead of it at sunset. */
-const SUN_DIR = new Track<number[]>([
+export const SUN_DIR = new Track<number[]>([
   { t: 0, v: [0.35, 0.18, 1] }, { t: 1, v: [0.4, 1.6, 0.3] }, { t: 2, v: [-0.08, 0.1, -1] }, { t: 2.4, v: [-0.08, 0.02, -1] },
 ].map((k) => ({ ...k, ease: 'linear' })));
-const col = (tr: Track<number[]>, d: number, out = new THREE.Color()) => out.fromArray(tr.sample(d));
+export const col = (tr: Track<number[]>, d: number, out = new THREE.Color()) => out.fromArray(tr.sample(d));
 
 function Atmosphere() {
   const scene = useThree((s) => s.scene);
@@ -188,6 +191,7 @@ function City() {
   const g = useMemo(() => {
     const g = new THREE.Group();
     g.add(buildCity(), buildPalms(), buildPoles());
+    if (REAL) weather(g);
     return g;
   }, []);
   return <primitive object={g} />;
