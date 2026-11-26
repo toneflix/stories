@@ -188,6 +188,11 @@ const prop = (name: string) => publicUrl(`assets/props/${name}.glb`);
  * see-through so you can see them.
  */
 const CABIN_DROP = 0.42;
+/** Where the T3's texture paints its windows (a grey-green): 1 on glass, 0 on bodywork. */
+const GLASSY = `float glassy(vec3 c) {
+  return smoothstep(0.0, 0.03, c.g - c.r) * smoothstep(-0.01, 0.02, c.b - c.r) * step(max(c.g, c.b), 0.8);
+}
+`;
 /** Half turns to put the T3's nose at bus-space +z. */
 const T3_TURN = Math.PI;
 export function RealBusBody({ model }: { model: BusModel }) {
@@ -220,21 +225,37 @@ export function RealBusBody({ model }: { model: BusModel }) {
     body.updateMatrixWorld(true);
     const b3 = shape(), c3 = b3.getCenter(new THREE.Vector3());
     body.position.set(-c3.x, -b3.min.y - 0.05, -c3.z);
-    body.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (!m.isMesh) return;
+    const meshes: THREE.Mesh[] = [];
+    body.traverse((o) => { if ((o as THREE.Mesh).isMesh) meshes.push(o as THREE.Mesh); });
+    meshes.forEach((m) => {
       m.castShadow = m.receiveShadow = true;
       const mat = (m.material as THREE.MeshStandardMaterial).clone();
-      mat.transparent = true;
+      // the body is cut away where the windows are painted; a glass skin fills the holes
+      mat.alphaTest = 0.5;
       mat.onBeforeCompile = (sh) => {
-        sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-          // painted glass is a grey-green: let it show the cabin through
-          float glassy = smoothstep(0.0, 0.03, diffuseColor.g - diffuseColor.r) * smoothstep(-0.01, 0.02, diffuseColor.b - diffuseColor.r) * step(max(diffuseColor.g, diffuseColor.b), 0.8);
-          diffuseColor.a *= mix(1.0, 0.18, glassy);`)
-          .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.08, glassy);');
+        sh.fragmentShader = GLASSY + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.a *= 1.0 - glassy(diffuseColor.rgb);');
       };
-      mat.customProgramCacheKey = () => 't3glass';
+      mat.customProgramCacheKey = () => 't3body';
       m.material = mat;
+      const glass = new THREE.MeshStandardMaterial({ map: mat.map, color: '#d9e3e3', metalness: 1, roughness: 0.07, transparent: true, depthWrite: false, envMapIntensity: 1.4 });
+      glass.onBeforeCompile = (sh) => {
+        sh.fragmentShader = GLASSY + sh.fragmentShader
+          .replace('#include <map_fragment>', `#include <map_fragment>
+            float g = glassy(diffuseColor.rgb);
+            // the painted dust on the glass, kept faintly
+            float dust = clamp(dot(diffuseColor.rgb, vec3(0.33)) * 1.6 - 0.45, 0.0, 1.0);
+            diffuseColor.rgb = vec3(0.86, 0.9, 0.9);`)
+          .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = 0.05 + dust * 0.35;')
+          .replace('#include <opaque_fragment>', `
+            // reflections strongest at grazing angles, the cabin visible head on
+            float fres = pow(1.0 - abs(dot(normalize(vViewPosition), normal)), 3.0);
+            diffuseColor.a = g * clamp(0.14 + fres * 0.6 + dust * 0.12, 0.0, 0.9);
+            #include <opaque_fragment>`);
+      };
+      glass.customProgramCacheKey = () => 't3glass';
+      const skin = new THREE.Mesh(m.geometry, glass);
+      skin.renderOrder = 2;
+      m.add(skin);
     });
     model.group.add(body);
     model.headlights.visible = false;
