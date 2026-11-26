@@ -24,7 +24,9 @@ const emptyState: StoryState = { likes: 0, comments: 0, saves: 0, shares: 0, lik
 
 export function Feed({ stories, startSlug }: { stories: ReleasedStory[]; startSlug?: string }) {
   const scroller = useRef<HTMLDivElement>(null);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
+  // Set when the browser refused to autoplay with sound; the first tap or key press turns sound back on.
+  const [autoMuted, setAutoMuted] = useState(false);
   const [active, setActive] = useState(0);
   const [comments, setComments] = useState<ReleasedStory | null>(null);
   const [share, setShare] = useState<ReleasedStory | null>(null);
@@ -53,6 +55,25 @@ export function Feed({ stories, startSlug }: { stories: ReleasedStory[]; startSl
     return () => io.disconnect();
   }, [stories, startSlug]);
 
+  const autoplayBlocked = useCallback(() => {
+    setMuted(true);
+    setAutoMuted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!autoMuted) return;
+    const unmute = () => {
+      setMuted(false);
+      setAutoMuted(false);
+    };
+    window.addEventListener('pointerdown', unmute, { once: true });
+    window.addEventListener('keydown', unmute, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unmute);
+      window.removeEventListener('keydown', unmute);
+    };
+  }, [autoMuted]);
+
   const go = (delta: number) => {
     const el = scroller.current;
     const next = Math.min(Math.max(active + delta, 0), el ? el.children.length - 1 : 0);
@@ -69,7 +90,11 @@ export function Feed({ stories, startSlug }: { stories: ReleasedStory[]; startSl
             story={story}
             active={i === active}
             muted={muted}
-            onToggleMute={() => setMuted((m) => !m)}
+            onToggleMute={() => {
+              setAutoMuted(false);
+              setMuted((m) => !m);
+            }}
+            onAutoplayBlocked={autoplayBlocked}
             state={states[story.slug] ?? emptyState}
             onState={(s) => setState(story.slug, s)}
             onComments={() => setComments(story)}
@@ -123,6 +148,7 @@ function FeedItem({
   active,
   muted,
   onToggleMute,
+  onAutoplayBlocked,
   state,
   onState,
   onComments,
@@ -133,6 +159,7 @@ function FeedItem({
   active: boolean;
   muted: boolean;
   onToggleMute: () => void;
+  onAutoplayBlocked: () => void;
   state: StoryState;
   onState: (s: StoryState) => void;
   onComments: () => void;
@@ -148,9 +175,16 @@ function FeedItem({
   useEffect(() => {
     const v = video.current;
     if (!v) return;
-    if (active && !paused) v.play().catch(() => setPaused(true));
-    else v.pause();
-  }, [active, paused]);
+    if (!active || paused) {
+      v.pause();
+      return;
+    }
+    v.muted = muted;
+    v.play().catch((err: DOMException) => {
+      if (err.name === 'NotAllowedError' && !muted) onAutoplayBlocked();
+      else if (err.name !== 'AbortError') setPaused(true);
+    });
+  }, [active, paused, muted, onAutoplayBlocked]);
 
   const toggle = (key: 'liked' | 'saved') =>
     requireAuth(async () => {
@@ -221,9 +255,7 @@ function FeedItem({
           </div>
         )}
 
-        <div className="progress" aria-hidden>
-          <div style={{ width: `${progress * 100}%` }} />
-        </div>
+        <Scrubber video={video} progress={progress} onSeek={setProgress} />
       </div>
 
       <div className="rail">
@@ -253,5 +285,64 @@ function FeedItem({
         </button>
       </div>
     </section>
+  );
+}
+
+function Scrubber({
+  video,
+  progress,
+  onSeek,
+}: {
+  video: React.RefObject<HTMLVideoElement | null>;
+  progress: number;
+  onSeek: (p: number) => void;
+}) {
+  const bar = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState(false);
+
+  const seekTo = (p: number) => {
+    const v = video.current;
+    if (!v || !v.duration) return;
+    const clamped = Math.min(Math.max(p, 0), 1);
+    v.currentTime = clamped * v.duration;
+    onSeek(clamped);
+  };
+  const seekToPointer = (e: React.PointerEvent) => {
+    const r = bar.current?.getBoundingClientRect();
+    if (r) seekTo((e.clientX - r.left) / r.width);
+  };
+
+  return (
+    <div
+      ref={bar}
+      className={dragging ? 'scrubber dragging' : 'scrubber'}
+      role="slider"
+      tabIndex={0}
+      aria-label="Seek"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(progress * 100)}
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setDragging(true);
+        seekToPointer(e);
+      }}
+      onPointerMove={(e) => dragging && seekToPointer(e)}
+      onPointerUp={() => setDragging(false)}
+      onPointerCancel={() => setDragging(false)}
+      onKeyDown={(e) => {
+        const d = video.current?.duration;
+        if (!d) return;
+        if (e.key === 'ArrowRight') seekTo(progress + 5 / d);
+        else if (e.key === 'ArrowLeft') seekTo(progress - 5 / d);
+        else return;
+        e.preventDefault();
+      }}
+    >
+      <div className="scrubber-track">
+        <div className="scrubber-fill" style={{ width: `${progress * 100}%` }} />
+        <div className="scrubber-thumb" style={{ left: `${progress * 100}%` }} />
+      </div>
+    </div>
   );
 }
