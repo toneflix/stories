@@ -8,8 +8,8 @@ import type { ClipSample } from './clips';
 export interface CharacterSpec {
   /** Skinned parts sharing one rig, e.g. base body + outfit. The first one is the body. */
   parts: string[];
-  /** Static attachments parented to a bone at load (hair, hats, props). */
-  attach?: { url: string; bone: string; tint?: THREE.ColorRepresentation }[];
+  /** Static attachments parented to a bone at load (hair, hats, props). `tint` multiplies the texture; `paint` replaces it. */
+  attach?: { url: string; bone: string; tint?: THREE.ColorRepresentation; paint?: THREE.ColorRepresentation }[];
   /** glTF files whose animations drive the rig (matched by bone name). */
   animations: string[];
   /** Recolour meshes by name, e.g. eyebrows. Multiplies the texture. */
@@ -56,9 +56,13 @@ export function useCharacter(spec: CharacterSpec): Character {
     // attachments are authored in rest pose, so parent them before any animation runs
     (spec.attach ?? []).forEach((a, i) => {
       const obj = attachments[i].scene.clone(true);
-      if (a.tint) obj.traverse((o) => {
+      if (a.tint || a.paint) obj.traverse((o) => {
         const m = o as THREE.Mesh;
-        if (m.isMesh) { const mat = (m.material as THREE.MeshStandardMaterial).clone(); mat.color.set(a.tint!); m.material = mat; }
+        if (!m.isMesh) return;
+        const mat = (m.material as THREE.MeshStandardMaterial).clone();
+        mat.color.set((a.paint ?? a.tint)!);
+        if (a.paint) mat.map = null;
+        m.material = mat;
       });
       root.add(obj);
       root.updateMatrixWorld(true);
