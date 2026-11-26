@@ -1382,33 +1382,33 @@ input {
   width: 56px;
   height: 56px;
   border-radius: 50%;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--bg);
-  font-weight: 700;
-  font-size: 18px;
-  background: var(--text-2);
+  color: var(--text);
+  background: var(--surface-3);
 }
 
 .mark-whatsapp {
-  background: #7fd8a0;
+  color: #fff;
+  background: #25d366;
 }
 
 .mark-x {
-  background: var(--text);
+  color: #fff;
+  background: #000;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
 }
 
 .mark-facebook {
-  background: #9db2ff;
+  color: #0866ff;
+  background: #fff;
 }
 
 .mark-telegram {
-  background: #8fd3f5;
-}
-
-.mark-email {
-  background: #c9b6ff;
+  color: #26a5e4;
+  background: #fff;
 }
 
 .share-link {

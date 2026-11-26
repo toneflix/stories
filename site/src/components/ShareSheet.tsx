@@ -1,20 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import type { ReleasedStory } from '@/content/stories';
 import { api } from '@/lib/client';
 import type { StoryState } from '@/lib/social';
-import { CloseIcon, LinkIcon, MailIcon, ShareIcon } from './Icons';
+import { CloseIcon, FacebookIcon, LinkIcon, MailIcon, ShareIcon, TelegramIcon, WhatsAppIcon, XIcon } from './Icons';
 import { Sheet } from './Sheet';
 
-type Target = { id: string; label: string; mark?: string; href?: (url: string, text: string) => string };
+type Target = { id: string; label: string; Icon: (p: { size?: number }) => ReactNode; size: number; href: (url: string, text: string) => string };
 
 const targets: Target[] = [
-  { id: 'whatsapp', label: 'WhatsApp', mark: 'W', href: (u, t) => `https://wa.me/?text=${encodeURIComponent(`${t} ${u}`)}` },
-  { id: 'x', label: 'X', mark: 'X', href: (u, t) => `https://x.com/intent/post?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}` },
-  { id: 'facebook', label: 'Facebook', mark: 'f', href: (u) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}` },
-  { id: 'telegram', label: 'Telegram', mark: 'T', href: (u, t) => `https://t.me/share/url?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}` },
-  { id: 'email', label: 'Email', href: (u, t) => `mailto:?subject=${encodeURIComponent(t)}&body=${encodeURIComponent(u)}` },
+  { id: 'whatsapp', label: 'WhatsApp', Icon: WhatsAppIcon, size: 30, href: (u, t) => `https://wa.me/?text=${encodeURIComponent(`${t} ${u}`)}` },
+  { id: 'x', label: 'X', Icon: XIcon, size: 22, href: (u, t) => `https://x.com/intent/post?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}` },
+  { id: 'facebook', label: 'Facebook', Icon: FacebookIcon, size: 56, href: (u) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}` },
+  { id: 'telegram', label: 'Telegram', Icon: TelegramIcon, size: 56, href: (u, t) => `https://t.me/share/url?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}` },
+  { id: 'email', label: 'Email', Icon: MailIcon, size: 22, href: (u, t) => `mailto:?subject=${encodeURIComponent(t)}&body=${encodeURIComponent(u)}` },
 ];
 
 export function ShareSheet({
@@ -65,12 +65,12 @@ export function ShareSheet({
             <a
               key={t.id}
               className="share-target"
-              href={t.href?.(url, text)}
+              href={t.href(url, text)}
               target="_blank"
               rel="noopener"
               onClick={() => record(t.id)}
             >
-              <span className={`share-mark mark-${t.id}`}>{t.mark ?? <MailIcon size={20} />}</span>
+              <span className={`share-mark mark-${t.id}`}><t.Icon size={t.size} /></span>
               {t.label}
             </a>
           ))}
