@@ -14,7 +14,15 @@
     {
       "dir": "../.sources/rocketbox/avatars/Business_Female_01",
       "name": "Business_Female_01",
-      "out": "../public/assets/characters/rb-neighbour.glb"
+      "out": "../public/assets/characters/rb-neighbour.glb",
+      "homeClothes": {
+        "top": "#b8562a",
+        "print": [
+          "#1f4f6b",
+          "#e8c25a"
+        ],
+        "bottom": "#4a4b52"
+      }
     }
   ],
   "clips": [

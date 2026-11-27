@@ -44,6 +44,6 @@ const write = async (out, b64) => {
   console.log(out, (fs.statSync(r(out)).size / 1024).toFixed(0), 'KB');
 };
 
-for (const a of cfg.avatars ?? []) await write(a.out, await page.evaluate(([d, n, o]) => window.avatar(d, n, o), [fsUrl(a.dir), a.name, { greyHair: !!a.greyHair }]));
+for (const a of cfg.avatars ?? []) await write(a.out, await page.evaluate(([d, n, o]) => window.avatar(d, n, o), [fsUrl(a.dir), a.name, { greyHair: !!a.greyHair, homeClothes: a.homeClothes }]));
 for (const c of cfg.clips ?? []) await write(c.out, await page.evaluate(([u, n, p]) => window.clip(u, n, p), [fsUrl(c.src), c.name, !!c.inPlace]));
 await browser.close(); await server.close();
