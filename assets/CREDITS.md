@@ -19,8 +19,15 @@ Everything here is free to use commercially. The prepared files live in `public/
 | "Modular Slums" | [lexferreira89](https://sketchfab.com/3d-models/e2b6f532e1fe4f7280890971d78183f4) | CC BY 4.0 | Route 7 street (`props/modular-slums.glb`) |
 | "Slum house" | [designbureau](https://sketchfab.com/3d-models/e902e0af80804d01924387da6af8eecf) | CC BY 4.0 | Route 7 street, The Other Lamp street (`props/slum-house.glb`) |
 | "Basic Clock Rigged" | [Blender3D](https://sketchfab.com/3d-models/edc8c38a80f5419092f72e8febf3598b) | CC BY 4.0 | The Other Lamp wall clock (`props/wall-clock.glb`) |
+| Freesound sound 129678 | [freesound.org/s/129678](https://freesound.org/s/129678/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | Crickets in The Other Lamp (`sounds/night-crickets.mp3`) |
+| Freesound sound 118959 | [freesound.org/s/118959](https://freesound.org/s/118959/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | The far-off generator in The Other Lamp (`sounds/night-crickets.mp3`) |
+| Freesound sound 398977 | [freesound.org/s/398977](https://freesound.org/s/398977/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | The wall switch in The Other Lamp (`sounds/light-switch.mp3`) |
+| Freesound sound 406770 | [freesound.org/s/406770](https://freesound.org/s/406770/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | The lamp's switch in The Other Lamp (`sounds/lamp-switch.mp3`) |
+| Freesound sound 257456 | [freesound.org/s/257456](https://freesound.org/s/257456/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | The clock in The Other Lamp (`sounds/clock-tick.mp3`) |
+| Freesound sound 146209 | [freesound.org/s/146209](https://freesound.org/s/146209/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | The street door in The Other Lamp (`sounds/street-door.mp3`) |
+| Freesound sound 152976 | [freesound.org/s/152976](https://freesound.org/s/152976/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | The old door in The Other Lamp (`sounds/door-creak.mp3`) |
 
-Made in code (no external asset): terrain, trees, village, lanterns, sky, fireflies; Route 7's flood, palms, poles and bus stops; all music and sound effects.
+Made in code (no external asset): terrain, trees, village, lanterns, sky, fireflies; Route 7's flood, palms, poles and bus stops; all music and sound effects except The Other Lamp's.
 
 Quaternius' packs were fetched from public GitHub mirrors (see `tools/fetch-sources.sh`) because the official download sites aren't reachable from our build environment. They are the free "Standard" editions; consider supporting Quaternius on Patreon.
 

@@ -28,7 +28,7 @@ export const SPOT = {
 
 export const CUES: Cue[] = [
   { at: 2.5, type: 'voice', id: 'r1' }, { at: 12.5, type: 'voice', id: 'r2' }, { at: 37.0, type: 'voice', id: 'r3' },
-  { at: 22.5, type: 'sfx', id: 'tick' },
+  ...[19.5, 20.5, 21.5, 22.5].map((at): Cue => ({ at, type: 'sfx', id: 'tick' })),
   { at: 24.0, type: 'sfx', id: 'click' },
   { at: 52.0, type: 'wait', target: 'switch', prompt: 'Answer it' },
   { at: 52.3, type: 'sfx', id: 'switch' },
