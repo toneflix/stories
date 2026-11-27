@@ -1,9 +1,9 @@
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 export function signInEmail(url: string) {
-  const origin = new URL(url).origin;
+  const { origin, host } = new URL(url);
   const link = escape(url);
-  const subject = 'Your Toneflix Stories sign-in link';
+  const subject = `Sign in to ${host}`;
 
   const html = `<!doctype html>
 <html lang="en">
@@ -17,18 +17,18 @@ export function signInEmail(url: string) {
             <td style="font-family:Helvetica,Arial,sans-serif;font-size:17px;font-weight:700;letter-spacing:0.22em;color:#F2F4F7;">STORIES</td>
           </tr></table>
         </td></tr>
-        <tr><td style="padding:24px 32px 8px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:700;color:#F2F4F7;">Your sign-in link</td></tr>
-        <tr><td style="padding:0 32px 28px;font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#A1A7B3;">Tap the button below to sign in to Toneflix Stories.</td></tr>
+        <tr><td style="padding:24px 32px 28px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:700;line-height:1.3;word-break:break-word;color:#F2F4F7;">Sign in to ${escape(host)}</td></tr>
         <tr><td style="padding:0 32px 36px;">
           <a href="${link}" style="display:inline-block;background:#56BCF9;color:#0A0C10;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:999px;">Sign in</a>
         </td></tr>
       </table>
+      <p style="max-width:440px;margin:20px auto 0;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#6F747E;">If you did not request this email you can safely ignore it.</p>
     </td></tr>
   </table>
 </body>
 </html>`;
 
-  const text = `Tap the link below to sign in to Toneflix Stories.\n\n${url}\n`;
+  const text = `Sign in to ${host}\n${url}\n\n`;
 
   return { subject, html, text };
 }
