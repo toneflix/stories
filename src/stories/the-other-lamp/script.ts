@@ -40,9 +40,9 @@ export const CUES: Cue[] = [
 ];
 
 /** Scalar beats on a GSAP timeline, seeked to story time every frame. */
-export const S = beats({ ceiling: 1, lampA: 0, lampB: 0, minute: 59, cup: 0, reach: 0, roomDoor: 0, gate: 0, gateB: 0 }, (tl, s) => {
-  tl.fromTo(s, { minute: 59 }, { minute: 60, duration: 0.12, ease: 'back.out(3)' }, 22.5);
-  // the lamp across the way comes on at midnight, and answers her twice
+export const S = beats({ ceiling: 1, lampA: 0, lampB: 0, minute: 44, cup: 0, reach: 0, roomDoor: 0, gate: 0, gateB: 0 }, (tl, s) => {
+  tl.fromTo(s, { minute: 44 }, { minute: 45, duration: 0.12, ease: 'back.out(3)' }, 22.5);
+  // the lamp across the way comes on at a quarter to ten, and answers her twice
   tl.fromTo(s, { lampB: 0 }, { lampB: 1, duration: 0.08 }, 24.0);
   for (const at of [56.6, 57.6]) tl.fromTo(s, { lampB: 1 }, { lampB: 0, duration: 0.05 }, at).fromTo(s, { lampB: 0 }, { lampB: 1, duration: 0.05 }, at + 0.45);
   // her light: off and on at the switch, off as she leaves

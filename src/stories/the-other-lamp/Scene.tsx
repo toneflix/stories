@@ -168,7 +168,7 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     f.ceil.intensity = s.ceiling * 14;
     (f.bulbA.material as THREE.MeshBasicMaterial).color.set('#4a4036').lerp(new THREE.Color('#fff2d8').multiplyScalar(4), s.ceiling);
     // the second hand reaches 12 as the minute turns
-    f.clock.set(23, s.minute, Math.floor(t + 37.5) % 60);
+    f.clock.set(21, s.minute, Math.floor(t + 37.5) % 60);
     set.b.roomDoor.rotation.y = -s.roomDoor;
     set.a.entranceDoor.rotation.y = s.gate * 1.4;
     set.b.entranceDoor.rotation.y = s.gateB * 1.4;
