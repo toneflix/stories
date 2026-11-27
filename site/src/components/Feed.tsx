@@ -28,7 +28,7 @@ export function Feed({ stories, startSlug }: { stories: ReleasedStory[]; startSl
   const [muted, setMuted] = useState(false);
   // Set when the browser refused to autoplay with sound; the first tap or key press turns sound back on.
   const [autoMuted, setAutoMuted] = useState(false);
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(() => Math.max(startSlug ? stories.findIndex((s) => s.slug === startSlug) : 0, 0));
   const [comments, setComments] = useState<ReleasedStory | null>(null);
   const [share, setShare] = useState<ReleasedStory | null>(null);
   const [states, setStates] = useState<Record<string, StoryState>>({});
@@ -55,6 +55,15 @@ export function Feed({ stories, startSlug }: { stories: ReleasedStory[]; startSl
     Array.from(el.children).forEach((c) => io.observe(c));
     return () => io.disconnect();
   }, [stories, startSlug]);
+
+  // On a story link, keep the address and tab title on the story being watched.
+  useEffect(() => {
+    const story = stories[active];
+    if (!startSlug || !story) return;
+    const path = `/s/${story.slug}`;
+    if (window.location.pathname !== path) window.history.replaceState(window.history.state, '', path);
+    document.title = `${story.title} · Toneflix Stories`;
+  }, [active, startSlug, stories]);
 
   const autoplayBlocked = useCallback(() => {
     setMuted(true);
