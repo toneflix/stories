@@ -305,7 +305,7 @@ function Passenger({ model }: { model: BusModel }) {
       const busForward = routePose(BUS_S.sample(t)).forward;
       const facing = lerp(walkIn, heading, smoothstep(0.7, 1, a));
       her.root.rotation.set(0, lerp(facing, heading + angleTo(face, busForward), smoothstep(0.55, 0.9, k)), 0);
-      her.root.visible = t >= 56.4 && k < 0.98;
+      her.root.visible = t >= 56.4;
       // the T3's doorway is lower than she is: she ducks through it
       if (k > 0) {
         const duck = smoothstep(0.2, 0.38, k) * (1 - smoothstep(0.92, 1, k));
