@@ -18,18 +18,18 @@ export function signInEmail(url: string) {
           </tr></table>
         </td></tr>
         <tr><td style="padding:24px 32px 8px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:700;color:#F2F4F7;">Sign in</td></tr>
-        <tr><td style="padding:0 32px 28px;font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#A1A7B3;">This link works once and expires in 24 hours.</td></tr>
+        <tr><td style="padding:0 32px 28px;font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#A1A7B3;">The link works once, within a day.</td></tr>
         <tr><td style="padding:0 32px 36px;">
           <a href="${link}" style="display:inline-block;background:#56BCF9;color:#0A0C10;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;text-decoration:none;padding:14px 32px;border-radius:999px;">Sign in</a>
         </td></tr>
       </table>
-      <p style="max-width:440px;margin:20px auto 0;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#6F747E;">If you didn't ask for this, you can ignore it.</p>
+      <p style="max-width:440px;margin:20px auto 0;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#6F747E;">Wasn't you? Just ignore this email.</p>
     </td></tr>
   </table>
 </body>
 </html>`;
 
-  const text = `Sign in to Toneflix Stories\n\n${url}\n\nThis link works once and expires in 24 hours. If you didn't ask for this, you can ignore it.\n`;
+  const text = `Sign in to Toneflix Stories\n\n${url}\n\nThe link works once, within a day. Wasn't you? Just ignore this email.\n`;
 
   return { subject, html, text };
 }
