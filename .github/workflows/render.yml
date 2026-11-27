@@ -23,15 +23,10 @@ on:
         description: Runners to share the work for each story (1 to 20)
         type: number
         default: 16
-      look:
-        description: Look (empty for the story's own)
-        type: string
-        default: ''
 permissions:
   contents: read
 env:
   SIZE: ${{ inputs.size || '720x1280' }}
-  LOOK: ${{ inputs.look }}
 jobs:
   plan:
     runs-on: ubuntu-24.04
@@ -80,7 +75,7 @@ jobs:
       - run: npx playwright install --with-deps --only-shell chromium
       - name: Render ${{ matrix.story }} part ${{ matrix.part }}
         env: { STORY: '${{ matrix.story }}' }
-        run: node tools/export.mjs "$STORY" --size "$SIZE" --chunk "${{ matrix.part }}/${{ needs.plan.outputs.count }}" ${LOOK:+--look "$LOOK"} --out "parts/part-$(printf %03d ${{ matrix.part }}).mp4"
+        run: node tools/export.mjs "$STORY" --size "$SIZE" --chunk "${{ matrix.part }}/${{ needs.plan.outputs.count }}" --out "parts/part-$(printf %03d ${{ matrix.part }}).mp4"
       - uses: actions/upload-artifact@v7
         with:
           name: part-${{ matrix.story }}-${{ matrix.part }}
