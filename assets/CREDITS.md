@@ -12,7 +12,8 @@ Everything here is free to use commercially. The prepared files live in `public/
 | Voice reference `narrator-alt.wav`: Hi-Fi TTS speaker 9017 | Bakhturina et al., from [LibriVox](https://librivox.org) (public domain) | CC BY 4.0 | Alternative narrator voice, Baba Ayo in Route 7 |
 | Voice reference `passenger.wav`: Hi-Fi TTS speaker 92 | Bakhturina et al., from [LibriVox](https://librivox.org) (public domain) | CC BY 4.0 | The passenger in Route 7 |
 | Microsoft Rocketbox avatars `Male_Adult_12`, `Female_Party_02` and animations | [Microsoft](https://github.com/microsoft/Microsoft-Rocketbox) | MIT | Baba Ayo and the passenger in Route 7 (`rb-*.glb`) |
-| Microsoft Rocketbox avatar `Business_Female_01` and animations | [Microsoft](https://github.com/microsoft/Microsoft-Rocketbox) | MIT | The woman in The Other Lamp (`rb-neighbour*.glb`) |
+| Microsoft Rocketbox animations and the `Business_Female_01` skeleton | [Microsoft](https://github.com/microsoft/Microsoft-Rocketbox) | MIT | How the woman in The Other Lamp moves (`rb-neighbour-*.glb`) |
+| "African Makehuman Character with PBR Textures" | [mertbbicak](https://sketchfab.com/3d-models/1a88f2e4a0724c639e81e6fe92587b9c) | CC BY 4.0 | The woman in The Other Lamp (`characters/neighbour.glb`, rigged with `tools/skin-transfer.mjs`) |
 | "Volkswagen T3" | [art_yom_3d](https://sketchfab.com/3d-models/a08d416576c64bec96b10fd889d6d274) | CC BY 4.0 | The danfo in Route 7 (`props/vw-t3.glb`) |
 | "Old Residential Building [4k]" | [andrej.grave](https://sketchfab.com/3d-models/dd400ed693cf416e940c5b8e3107205e) | CC BY 4.0 | Route 7 street, The Other Lamp street (`props/old-residential.glb`) |
 | "Modular Slums" | [lexferreira89](https://sketchfab.com/3d-models/e2b6f532e1fe4f7280890971d78183f4) | CC BY 4.0 | Route 7 street (`props/modular-slums.glb`) |

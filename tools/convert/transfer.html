@@ -1,0 +1,142 @@
+<!doctype html><meta charset="utf-8"><body><script type="module">
+// Gives a static character model the skeleton of a rigged Rocketbox avatar, so it plays the
+// same Rocketbox clips. The donor is posed to match the model (arms raised to its T-pose,
+// scaled to its height), then every vertex of the model copies the skin weights of the
+// nearest donor vertices. Driven by tools/skin-transfer.mjs.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+const toBase64 = (buf) => { let s = ''; const b = new Uint8Array(buf); for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(s); };
+const v3 = () => new THREE.Vector3();
+
+/** Turns a bone so the direction from it to `child` points along `dir` (world space). */
+function aim(bone, child, dir) {
+  bone.updateWorldMatrix(true, true);
+  const from = child.getWorldPosition(v3()).sub(bone.getWorldPosition(v3())).normalize();
+  const turn = new THREE.Quaternion().setFromUnitVectors(from, dir.clone().normalize());
+  const world = bone.getWorldQuaternion(new THREE.Quaternion()).premultiply(turn);
+  bone.quaternion.copy(bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(world));
+  bone.updateWorldMatrix(true, true);
+}
+
+window.transfer = async (donorUrl, targetUrl, opts) => {
+  const loader = new GLTFLoader();
+  const [donor, target] = await Promise.all([loader.loadAsync(donorUrl), loader.loadAsync(targetUrl)]);
+  const scene = new THREE.Scene();
+
+  // the model: feet on the ground, centred, `height` tall, facing +z
+  const model = target.scene;
+  scene.add(model);
+  model.updateMatrixWorld(true);
+  let box = new THREE.Box3().setFromObject(model);
+  const k = opts.height / (box.max.y - box.min.y);
+  model.scale.multiplyScalar(k);
+  model.updateMatrixWorld(true);
+  box = new THREE.Box3().setFromObject(model);
+  const c = box.getCenter(v3());
+  model.position.sub(new THREE.Vector3(c.x, box.min.y, c.z));
+  model.updateMatrixWorld(true);
+
+  // the donor at the same height, arms out to the model's T-pose
+  const rig = donor.scene;
+  scene.add(rig);
+  rig.updateMatrixWorld(true);
+  const dbox = new THREE.Box3().setFromObject(rig, true);
+  rig.scale.multiplyScalar(opts.height / (dbox.max.y - dbox.min.y) * (opts.rigScale ?? 1));
+  rig.updateMatrixWorld(true);
+  const dbox2 = new THREE.Box3().setFromObject(rig, true), dc = dbox2.getCenter(v3());
+  rig.position.sub(new THREE.Vector3(dc.x, dbox2.min.y, dc.z));
+  rig.updateMatrixWorld(true);
+  const bone = (n) => rig.getObjectByName(n);
+  for (const s of ['L', 'R']) {
+    const out = new THREE.Vector3(s === 'L' ? 1 : -1, -Math.tan(THREE.MathUtils.degToRad(opts.armDrop ?? 0)), 0);
+    // which way is the donor's left? measure it rather than trust the name
+    const side = Math.sign(bone(`Bip01_${s}_UpperArm`).getWorldPosition(v3()).x);
+    out.x = side;
+    aim(bone(`Bip01_${s}_UpperArm`), bone(`Bip01_${s}_Forearm`), out);
+    aim(bone(`Bip01_${s}_Forearm`), bone(`Bip01_${s}_Hand`), out);
+  }
+  rig.updateMatrixWorld(true);
+
+  // the donor's skinned surface, as posed now
+  const pts = [], idx = [], wts = [];
+  let skeleton = null;
+  rig.traverse((o) => {
+    if (!o.isSkinnedMesh) return;
+    skeleton ??= o.skeleton;
+    const g = o.geometry, n = g.attributes.position.count, p = v3();
+    for (let i = 0; i < n; i++) {
+      o.getVertexPosition(i, p); p.applyMatrix4(o.matrixWorld);
+      pts.push(p.x, p.y, p.z);
+      for (let j = 0; j < 4; j++) {
+        // bone indices refer to this mesh's skeleton; store bone names
+        idx.push(o.skeleton.bones[g.attributes.skinIndex.getComponent(i, j)].name);
+        wts.push(g.attributes.skinWeight.getComponent(i, j));
+      }
+    }
+  });
+  const P = new Float32Array(pts), N = P.length / 3;
+  // a grid for nearest-neighbour lookups
+  const cell = 0.04, grid = new Map(), key = (x, y, z) => `${Math.floor(x / cell)},${Math.floor(y / cell)},${Math.floor(z / cell)}`;
+  for (let i = 0; i < N; i++) { const kk = key(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]); if (!grid.has(kk)) grid.set(kk, []); grid.get(kk).push(i); }
+  const near = (x, y, z, k) => {
+    for (let r = 1; r < 12; r++) {
+      const found = [];
+      const cx = Math.floor(x / cell), cy = Math.floor(y / cell), cz = Math.floor(z / cell);
+      for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) for (let d = -r; d <= r; d++) {
+        const l = grid.get(`${cx + a},${cy + b},${cz + d}`); if (l) for (const i of l) found.push(i);
+      }
+      if (found.length >= k) {
+        return found.map((i) => [i, (P[i * 3] - x) ** 2 + (P[i * 3 + 1] - y) ** 2 + (P[i * 3 + 2] - z) ** 2]).sort((u, w) => u[1] - w[1]).slice(0, k);
+      }
+    }
+    return [];
+  };
+
+  // one skeleton for the new character: the donor's bones, bound in this pose
+  const bones = skeleton.bones;
+  const boneIndex = new Map(bones.map((b, i) => [b.name, i]));
+  const out = new THREE.Group(); out.name = opts.name;
+  // the donor's bone hierarchy (with its scale) moves under the new root, without its meshes
+  const drop = []; rig.traverse((o) => { if (o.isMesh) drop.push(o); });
+  drop.forEach((m) => m.parent.remove(m));
+  out.add(rig);
+  rig.updateMatrixWorld(true);
+
+  const meshes = [];
+  model.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  for (const m of meshes) {
+    const g = m.geometry.clone();
+    g.applyMatrix4(m.matrixWorld);
+    const n = g.attributes.position.count;
+    const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) {
+      const x = g.attributes.position.getX(i), y = g.attributes.position.getY(i), z = g.attributes.position.getZ(i);
+      const hits = near(x, y, z, 6);
+      const acc = new Map();
+      for (const [j, d2] of hits) {
+        const w0 = 1 / (Math.sqrt(d2) + 0.005);
+        for (let q = 0; q < 4; q++) {
+          const w = wts[j * 4 + q]; if (w <= 0) continue;
+          const b = boneIndex.get(idx[j * 4 + q]);
+          acc.set(b, (acc.get(b) ?? 0) + w * w0);
+        }
+      }
+      const best = [...acc].sort((u, w) => w[1] - u[1]).slice(0, 4);
+      const tot = best.reduce((s, [, w]) => s + w, 0) || 1;
+      best.forEach(([b, w], q) => { si[i * 4 + q] = b; sw[i * 4 + q] = w / tot; });
+    }
+    g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
+    g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+    const mat = [].concat(m.material).map((x) => { const y = x.clone(); return y; });
+    const sm = new THREE.SkinnedMesh(g, mat.length === 1 ? mat[0] : mat);
+    sm.name = m.name;
+    out.add(sm);
+    sm.bind(new THREE.Skeleton(bones), new THREE.Matrix4());
+  }
+  const glb = await new GLTFExporter().parseAsync(out, { binary: true, maxTextureSize: 1024, onlyVisible: false });
+  return toBase64(glb);
+};
+document.documentElement.dataset.ready = '1';
+</script></body>

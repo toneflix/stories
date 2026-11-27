@@ -1,0 +1,11 @@
+{
+  "characters": [
+    {
+      "name": "neighbour",
+      "src": "../.sources/people/makehuman-african-woman.glb",
+      "donor": "../.sources/people/rb-donor.glb",
+      "height": 1.68,
+      "out": "../public/assets/characters/neighbour.glb"
+    }
+  ]
+}
