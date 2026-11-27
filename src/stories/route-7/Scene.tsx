@@ -438,7 +438,8 @@ function Driver({ model }: { model: BusModel }) {
         hand.updateMatrixWorld(true);
         // then shift the arm so the rim runs through the middle of the closed fist
         const fist = ['21', '31', '11', '41'].reduce((c, n) => c.add(wp(finger(n))), new THREE.Vector3()).multiplyScalar(0.25);
-        place(grip.add(rim.clone().sub(fist)));
+        // (and 6 cm to his left: the curled fist sits off-centre from the measured knuckles)
+        place(grip.add(rim.clone().sub(fist)).add(new THREE.Vector3(0.06, 0, 0).applyQuaternion(wq)));
         hand.updateMatrixWorld(true);
       }
     }
