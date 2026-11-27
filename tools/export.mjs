@@ -4,7 +4,6 @@
 //   npm run export -- lantern-keeper                # 720x1280, 30 fps → out/lantern-keeper.mp4
 //   npm run export -- lantern-keeper --hd           # 1080x1920
 //   npm run export -- lantern-keeper --from 20 --to 26 --no-subs
-//   npm run export -- lantern-keeper --chunk 3/8    # one of 8 parts, video only (see tools/stitch.mjs)
 //
 // How: starts Vite, opens the story in headless Chromium with ?capture, and for every
 // frame calls window.__story.renderAt(t) and takes a screenshot (canvas + subtitles/title
@@ -26,7 +25,7 @@ if (!id) { console.error('usage: npm run export -- <story-id> [--hd] [--fps 30] 
 
 const [W, H] = flag('hd') ? [1080, 1920] : (opt('size', '720x1280').split('x').map(Number));
 const fps = Number(opt('fps', 30));
-// --chunk i/n renders the i-th of n equal frame ranges without sound; part 0 also writes the
+// --chunk i/n (e.g. 3/8) renders the i-th of n equal frame ranges without sound; part 0 also writes the
 // soundtrack and poster so tools/stitch.mjs can assemble the film.
 const chunk = opt('chunk')?.split('/').map(Number);
 const out = path.resolve(opt('out', chunk
