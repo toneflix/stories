@@ -7,6 +7,7 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { accounts, sessions, users, verificationTokens } from '@/db/schema';
+import { signInEmail } from '@/lib/signin-email';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -21,7 +22,19 @@ if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
 }
 
 if (process.env.AUTH_RESEND_KEY) {
-  providers.push(Resend({ from: process.env.AUTH_EMAIL_FROM ?? 'Toneflix Stories <onboarding@resend.dev>' }));
+  providers.push(
+    Resend({
+      from: process.env.AUTH_EMAIL_FROM ?? 'Toneflix Stories <onboarding@resend.dev>',
+      async sendVerificationRequest({ identifier: to, provider, url }) {
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${provider.apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: provider.from, to, ...signInEmail(url) }),
+        });
+        if (!res.ok) throw new Error(`Resend error: ${await res.text()}`);
+      },
+    }),
+  );
   enabledProviders.push('resend');
 }
 
