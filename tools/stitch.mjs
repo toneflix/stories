@@ -3,6 +3,7 @@
 //
 //   npm run stitch -- lantern-keeper                 # out/lantern-keeper-parts/ → out/lantern-keeper.mp4
 //   npm run stitch -- lantern-keeper --parts dir --out file
+//   npm run stitch -- lantern-keeper --web            # smaller re-encode for the website
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,7 +11,7 @@ import path from 'node:path';
 const args = process.argv.slice(2);
 const id = args.find((a) => !a.startsWith('--'));
 const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
-if (!id) { console.error('usage: npm run stitch -- <story-id> [--parts dir] [--out file]'); process.exit(1); }
+if (!id) { console.error('usage: npm run stitch -- <story-id> [--parts dir] [--out file] [--web]'); process.exit(1); }
 
 const dir = path.resolve(opt('parts', `out/${id}-parts`));
 const out = path.resolve(opt('out', `out/${id}.mp4`));
@@ -24,10 +25,12 @@ const title = probe.stdout?.toString().trim() ?? '';
 const list = path.join(dir, 'parts.txt');
 fs.writeFileSync(list, parts.map((f) => `file '${f}'\n`).join(''));
 fs.mkdirSync(path.dirname(out), { recursive: true });
+const web = args.includes('--web');
+const video = web ? ['-c:v', 'libx264', '-preset', 'slow', '-crf', '26', '-pix_fmt', 'yuv420p'] : ['-c:v', 'copy'];
 const ff = spawnSync('ffmpeg', [
   '-y', '-loglevel', 'error',
   '-f', 'concat', '-safe', '0', '-i', list, '-i', wav,
-  '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest',
+  '-map', '0:v', '-map', '1:a', ...video, '-c:a', 'aac', '-b:a', web ? '128k' : '192k', '-shortest',
   '-movflags', '+faststart', '-metadata', `title=${title}`, out,
 ], { stdio: 'inherit' });
 if (ff.status !== 0) throw new Error(`ffmpeg exited ${ff.status}`);

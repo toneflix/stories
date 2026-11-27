@@ -20,7 +20,9 @@ The exporter needs `ffmpeg` on your PATH and Chromium for Playwright (`npx playw
 
 ### Render on GitHub
 
-You don't need a powerful machine. In your copy of this repo on GitHub, open **Actions → Render a story → Run workflow**, pick a story and a size, and run it. The film is split into parts that render at the same time on up to 20 runners, then joined with the soundtrack. The MP4 and its poster appear under **Artifacts** on the finished run. Runners are free for public repos.
+You don't need a powerful machine. In your copy of this repo on GitHub, open **Actions → Render stories → Run workflow**, pick a story and a size, and run it. The film is split into parts that render at the same time on up to 20 runners, then joined with the soundtrack. The MP4 and its poster appear under **Artifacts** on the finished run. Runners are free for public repos.
+
+Publishing a release renders every story and commits the new videos to `site/public/media/<id>/`, which redeploys the website. To render just one, end the release tag with its id, e.g. `1.0.0-route-7`.
 
 The same split works on one machine:
 
