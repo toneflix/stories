@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="896" height="896" viewBox="64 64 896 896">
+  <defs>
+    <radialGradient id="tile" cx="50%" cy="50%" r="70%">
+      <stop offset="0" stop-color="#F3C000"/>
+      <stop offset="0.55" stop-color="#DEAA02"/>
+      <stop offset="1" stop-color="#BF8E02"/>
+    </radialGradient>
+    <linearGradient id="back" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00A4F8"/>
+      <stop offset="1" stop-color="#02D6FD"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#02E2FD"/>
+      <stop offset="1" stop-color="#00B0FF"/>
+    </linearGradient>
+  <mask id="bar" maskUnits="userSpaceOnUse"><rect width="1024" height="1024" fill="white"/><path d="M400 470 L434 470 L478 380 L444 380 Z" fill="black"/><path d="M518 470 L552 470 L596 380 L562 380 Z" fill="black"/><path d="M636 470 L670 470 L714 380 L680 380 Z" fill="black"/></mask>
+    <mask id="arm" maskUnits="userSpaceOnUse"><rect width="1024" height="1024" fill="white"/><path d="M410 400 L444 400 L488 300 L454 300 Z" fill="black"/><path d="M528 400 L562 400 L606 300 L572 300 Z" fill="black"/><path d="M646 400 L680 400 L724 300 L690 300 Z" fill="black"/></mask>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" fill="url(#tile)"/>
+  <path d="M320 466 L704 466 L704 752 L320 752 Z" fill="url(#front)"/>
+  <path d="M320 384 L704 384 L704 450 L320 450 Z" fill="url(#back)" mask="url(#bar)"/>
+  <g transform="rotate(-16 320 384)"><path d="M320 318 L320 384 L740 384 C640 336 480 318 320 318 Z" fill="url(#back)" mask="url(#arm)"/></g>
+</svg>
