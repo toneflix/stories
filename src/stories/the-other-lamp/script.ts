@@ -28,7 +28,6 @@ export const SPOT = {
 
 export const CUES: Cue[] = [
   { at: 2.5, type: 'voice', id: 'r1' }, { at: 12.5, type: 'voice', id: 'r2' }, { at: 37.0, type: 'voice', id: 'r3' },
-  ...[19.5, 20.5, 21.5, 22.5].map((at): Cue => ({ at, type: 'sfx', id: 'tick' })),
   { at: 24.0, type: 'sfx', id: 'click' },
   { at: 50.2, type: 'wait', target: 'switch', prompt: 'Answer it' },
   { at: 50.4, type: 'sfx', id: 'switch' },
@@ -40,9 +39,8 @@ export const CUES: Cue[] = [
 ];
 
 /** Scalar beats on a GSAP timeline, seeked to story time every frame. */
-export const S = beats({ ceiling: 1, lampA: 0, lampB: 0, minute: 46, cup: 0, reach: 0, roomDoor: 0, gate: 0, gateB: 0 }, (tl, s) => {
-  tl.fromTo(s, { minute: 46 }, { minute: 47, duration: 0.12, ease: 'back.out(3)' }, 22.5);
-  // the lamp across the way comes on at 9:47, and answers her twice
+export const S = beats({ ceiling: 1, lampA: 0, lampB: 0, cup: 0, reach: 0, roomDoor: 0, gate: 0, gateB: 0 }, (tl, s) => {
+  // the lamp across the way comes on, and answers her twice
   tl.fromTo(s, { lampB: 0 }, { lampB: 1, duration: 0.08 }, 24.0);
   for (const at of [56.6, 57.6]) tl.fromTo(s, { lampB: 1 }, { lampB: 0, duration: 0.05 }, at).fromTo(s, { lampB: 0 }, { lampB: 1, duration: 0.05 }, at + 0.45);
   // her light: off and on at the switch, off as she leaves
@@ -154,11 +152,8 @@ export const CAMERA: CameraKey[] = [
   // over her shoulder, the dark window across the street
   { t: 11, pos: A(2.55, EYE + 0.15, -2.6), look: B(1.75, EYE - 0.2, -0.3), fov: 40, cut: true },
   { t: 19, pos: A(2.45, EYE + 0.1, -2.3), look: B(1.75, EYE - 0.25, -0.3), fov: 36 },
-  // the clock: a minute to go
-  { t: 19.01, pos: A(SPOT.clock[0] + 0.35, FY + SPOT.clock[1] - 0.15, -1.9), look: A(SPOT.clock[0], FY + SPOT.clock[1] - 0.05, -0.27), fov: 30, cut: true },
-  { t: 23, pos: A(SPOT.clock[0] + 0.25, FY + SPOT.clock[1] - 0.1, -1.6), look: A(SPOT.clock[0], FY + SPOT.clock[1] - 0.05, -0.27), fov: 28 },
-  // the lamp comes on
-  { t: 23.01, pos: A(1.85, EYE, 0.25), look: B(1.9, FY + 1.0, -0.4), fov: 26, cut: true },
+  // her view: the dark window across the way, until the lamp comes on
+  { t: 19.01, pos: A(1.85, EYE, 0.25), look: B(1.9, FY + 1.0, -0.4), fov: 34, cut: true },
   { t: 30, pos: A(1.8, EYE, 0.3), look: B(1.9, FY + 1.0, -0.4), fov: 18 },
   // her face, from outside her window
   { t: 30.01, pos: A(1.15, EYE - 0.1, -0.3), look: A(1.75, EYE - 0.1, -0.8), fov: 54, cut: true },
