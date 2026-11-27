@@ -418,6 +418,8 @@ function Driver({ model }: { model: BusModel }) {
         const wp = (o: THREE.Object3D) => o.getWorldPosition(new THREE.Vector3());
         // palm towards the hub, at right angles to the fingers
         const P = R.clone().addScaledVector(F, -R.dot(F)).negate().normalize();
+        // the right hand is the left's mirror image: its knuckle frame comes out back to front
+        if (LR === 'R') P.negate();
         const want = new THREE.Matrix4().makeBasis(F, new THREE.Vector3().crossVectors(P, F), P);
         const place = (target: THREE.Vector3) => {
           solveTwoBone(ade.bone(`upperarm_${lr}`), ade.bone(`lowerarm_${lr}`), hand, target.clone(), pole.clone(), 1);
