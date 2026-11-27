@@ -50,11 +50,26 @@ const released: ReleasedStory[] = [
     seconds: 45,
     published: '2026-11-26',
   },
+  {
+    slug: 'route-7-still-running',
+    title: 'Route 7, Still Running',
+    theme: 'post-apocalyptic',
+    status: 'released',
+    narrated: true,
+    caption:
+      'A retired danfo driver keeps running his route through a flooded, empty Lagos, until one passenger finally flags him down.',
+    video: '/media/route-7/video.mp4',
+    poster: '/media/route-7/poster.jpg',
+    stills: [1, 2, 3, 4].map((n) => `/media/route-7/still-${n}.jpg`),
+    liveUrl: `${liveBase}/stories/route-7/index.html`,
+    sourceUrl: source('route-7'),
+    seconds: 112,
+    published: '2026-11-27',
+  },
 ];
 
 const upcoming: Record<ThemeId, string[]> = {
   'post-apocalyptic': [
-    'Route 7, Still Running',
     'Seed Vault',
     'Signal Fire',
     'Rust Choir',
