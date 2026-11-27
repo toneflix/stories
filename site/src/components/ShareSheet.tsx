@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import type { ReleasedStory } from '@/content/stories';
 import { api } from '@/lib/client';
 import type { StoryState } from '@/lib/social';
-import { CloseIcon, FacebookIcon, LinkIcon, MailIcon, ShareIcon, TelegramIcon, WhatsAppIcon, XIcon } from './Icons';
+import { CloseIcon, DownloadIcon, FacebookIcon, LinkIcon, MailIcon, ShareIcon, TelegramIcon, WhatsAppIcon, XIcon } from './Icons';
 import { Sheet } from './Sheet';
 
 type Target = { id: string; label: string; Icon: (p: { size?: number }) => ReactNode; size: number; href: (url: string, text: string) => string };
@@ -74,6 +74,12 @@ export function ShareSheet({
               {t.label}
             </a>
           ))}
+          <a className="share-target" href={story.video} download={`${story.slug}.mp4`}>
+            <span className="share-mark">
+              <DownloadIcon size={22} />
+            </span>
+            Download
+          </a>
           {canNative && (
             <button type="button" className="share-target" onClick={native}>
               <span className="share-mark mark-more">
