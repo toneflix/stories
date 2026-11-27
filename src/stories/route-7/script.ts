@@ -113,6 +113,7 @@ type V3 = [number, number, number];
 /** A point in bus space at time t: x to the driver's side, y up from the water, z to the front. */
 export function busPoint(t: number, x: number, y: number, z: number): V3 {
   const p = routePose(BUS_S.sample(t));
+  y += BUS_RAISE;
   const left = p.right.clone().multiplyScalar(-1);
   const w = p.pos.clone().addScaledVector(left, x).addScaledVector(p.forward, z);
   return [w.x, y, w.z];
@@ -126,6 +127,8 @@ export function shelterPoint(i: number, out: number, along: number, up: number):
 
 /** The realistic look's bus is lower: its cabin sits this much further down. */
 const LOW = REAL ? 0.42 : 0;
+/** The realistic bus rides this much higher than the old one, with a little flood still inside. */
+export const BUS_RAISE = REAL ? 0.3 : 0;
 /** ...and its doorway sits further back, so shots through it move back too. */
 /** ...and the over-the-shoulder shot stands wider of her, so her hair isn't the foreground. */
 const SHOULDER = REAL ? -0.4 : 0;

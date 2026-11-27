@@ -10,7 +10,7 @@ import { MOBILE } from '../../engine/Player';
 import { toon, toonify } from '../../engine/toon';
 import { rng } from '../../engine/random';
 import { Track, smoothstep, lerp, clamp } from '../../engine/timeline';
-import { B, BUS_S, BOARDED, CAMERA, DRIVER_CLIPS, PASSENGER_CLIPS, FARE } from './script';
+import { B, BUS_S, BOARDED, CAMERA, DRIVER_CLIPS, PASSENGER_CLIPS, FARE, BUS_RAISE } from './script';
 import { BUS, ROUTE_LENGTH, routePose, shelterPose, glowTexture } from './world';
 import { buildCity, buildPalms, buildPoles, buildShelter, SHELTERS } from './city';
 import { buildBus, type BusModel } from './bus';
@@ -250,7 +250,7 @@ const speed = (t: number) => (BUS_S.sample(t + 0.05) - BUS_S.sample(t - 0.05)) /
 function placeBus(group: THREE.Object3D, t: number, idle: number) {
   const p = routePose(BUS_S.sample(t));
   const v = speed(t);
-  group.position.copy(p.pos).setY(-BUS.draft + Math.sin(idle * 1.6) * 0.025);
+  group.position.copy(p.pos).setY(-BUS.draft + BUS_RAISE + Math.sin(idle * 1.6) * 0.025);
   group.rotation.set(Math.sin(idle * 1.1) * 0.008 - clamp(v * 0.004, -0.02, 0.02), p.heading, Math.sin(idle * 1.3 + 1) * 0.012, 'YXZ');
 }
 
@@ -517,8 +517,13 @@ function Passenger({ model }: { model: BusModel }) {
       const k = s.step, a = s.arrive;
       let p: THREE.Vector3;
       if (k > 0) {
-        p = k < 0.6 ? stand.clone().lerp(door, k / 0.6) : door.clone().lerp(inside, (k - 0.6) / 0.4);
-        p.y += Math.sin(clamp(k / 0.6) * Math.PI) * 0.12;
+        if (REAL) {
+          // one quick step down from the bench into the doorway, then in along the aisle
+          p = k < 0.4 ? stand.clone().lerp(door, smoothstep(0.22, 0.4, k)) : door.clone().lerp(inside, (k - 0.4) / 0.6);
+        } else {
+          p = k < 0.6 ? stand.clone().lerp(door, k / 0.6) : door.clone().lerp(inside, (k - 0.6) / 0.4);
+          p.y += Math.sin(clamp(k / 0.6) * Math.PI) * 0.12;
+        }
       } else if (a < 0.45) p = at(0.15, 2.7, -0.15).lerp(at(0.1, 1.5, BENCH_TOP), a / 0.45);
       else p = at(0.1, 1.5, BENCH_TOP).lerp(stand, (a - 0.45) / 0.55);
       her.root.position.copy(p);
@@ -529,10 +534,10 @@ function Passenger({ model }: { model: BusModel }) {
       her.root.visible = t >= 56.4 && k < 0.98;
       // the T3's doorway is lower than she is: she ducks through it
       if (REAL && k > 0) {
-        const duck = Math.sin(clamp((k - 0.3) / 0.7) * Math.PI);
+        const duck = smoothstep(0.2, 0.38, k) * (1 - smoothstep(0.92, 1, k));
         her.root.updateMatrixWorld(true);
-        for (const n of ['Bip01_Spine', 'Bip01_Spine1', 'Bip01_Spine2']) her.root.getObjectByName(n)!.rotateZ(-duck * 0.35);
-        her.root.position.y -= duck * 0.05;
+        for (const n of ['Bip01_Spine', 'Bip01_Spine1', 'Bip01_Spine2']) her.root.getObjectByName(n)!.rotateZ(duck * 0.42);
+        her.root.position.y -= duck * 0.18;
       }
       setup.hit.position.copy(stand).add(new THREE.Vector3(0, 1, 0));
     } else {
