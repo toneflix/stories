@@ -126,7 +126,7 @@ export default function Home() {
             film is simply what those instructions look like when a computer runs them.
           </p>
           <p className="muted">
-            It works a lot like a video game. A game doesn&apos;t play back a recording. Your computer draws every frame
+            Think of a video game. It doesn&apos;t play back a recording. Your computer draws every frame
             as you go, from a world the developers built. These stories are made the same way, except the camera
             follows a script instead of a controller, so the story plays out like a film. And because it&apos;s built
             like a game, you can open the live link and step inside it.
