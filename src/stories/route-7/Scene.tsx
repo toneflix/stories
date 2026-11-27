@@ -401,33 +401,42 @@ function Driver({ model }: { model: BusModel }) {
       const bend = routePose(s0 + 3).heading - routePose(s0).heading;
       const steer = clamp(bend * 3, -0.35, 0.35) + Math.sin(idle * 0.9) * 0.05 + Math.sin(idle * 2.3) * 0.02;
       model.wheelMount.children[0].rotation.z = steer;
-      // both hands wrapped round the rim: wrist just inside it, palm towards the dash, fingers curled over
+      // both hands wrapped round the rim, knuckles up the wheel, palms to the hub
       const wq = model.wheelMount.getWorldQuaternion(tmp.q);
       const N = tmp.n.set(0, 0, 1).applyQuaternion(wq);
       for (const side of [-1, 1]) {
         const a = Math.atan2(0.05, side * 0.17) + steer;
-        const rim = model.wheelMount.localToWorld(tmp.a.set(Math.cos(a) * 0.2, Math.sin(a) * 0.2, 0));
-        const F = tmp.f.set(Math.cos(a), Math.sin(a), 0).applyQuaternion(wq);
-        const grip = rim.clone().addScaledVector(F, -0.07).addScaledVector(N, -0.03);
+        const rim = model.wheelMount.localToWorld(tmp.a.set(Math.cos(a) * 0.19, Math.sin(a) * 0.19, 0));
+        // R: out from the hub; F: along the rim towards 12 o'clock, tipped a little to the dash
+        const R = tmp.f.set(Math.cos(a), Math.sin(a), 0).applyQuaternion(wq);
+        const F = new THREE.Vector3(-Math.sin(a) * side, Math.cos(a) * side, 0).applyQuaternion(wq).addScaledVector(N, 0.3).normalize();
+        const grip = rim.clone().addScaledVector(F, -0.08).addScaledVector(R, 0.03);
         const pole = at(model.driverSeat.x + side * 0.6, model.driverSeat.y - 0.2, model.driverSeat.z + 0.1, tmp.b);
         const lr = side > 0 ? 'l' : 'r', LR = side > 0 ? 'L' : 'R';
         const hand = ade.bone(`hand_${lr}`);
-        solveTwoBone(ade.bone(`upperarm_${lr}`), ade.bone(`lowerarm_${lr}`), hand, grip.clone(), pole.clone(), 1);
-        const finger = (f: number) => ade.root.getObjectByName(`Bip01_${LR}_Finger${f}`)!;
-        // the hand's own frame, from its knuckles: along the fingers, across them, out of the palm
-        const h = hand.getWorldPosition(new THREE.Vector3());
-        const cF = finger(2).getWorldPosition(new THREE.Vector3()).sub(h).normalize();
-        const cA = finger(1).getWorldPosition(new THREE.Vector3()).sub(finger(4).getWorldPosition(new THREE.Vector3()));
-        cA.addScaledVector(cF, -cA.dot(cF)).normalize();
-        const cur = new THREE.Matrix4().makeBasis(cF, cA, new THREE.Vector3().crossVectors(cF, cA));
-        const want = new THREE.Matrix4().makeBasis(F, new THREE.Vector3().crossVectors(N, F), N);
-        const turn = new THREE.Quaternion().setFromRotationMatrix(want.multiply(cur.transpose()));
-        const world = hand.getWorldQuaternion(new THREE.Quaternion()).premultiply(turn);
-        hand.quaternion.copy(hand.parent!.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(world));
-        for (const f of [0, 1, 2, 3, 4]) for (const j of ['', '1', '2']) {
-          const b = ade.root.getObjectByName(`Bip01_${LR}_Finger${f}${j}`);
-          if (b) b.rotateZ(f ? 1 : 0.4);   // fingers closed round the rim, thumb half in
-        }
+        const finger = (n: string) => ade.root.getObjectByName(`Bip01_${LR}_Finger${n}`)!;
+        const wp = (o: THREE.Object3D) => o.getWorldPosition(new THREE.Vector3());
+        // palm towards the hub, at right angles to the fingers
+        const P = R.clone().addScaledVector(F, -R.dot(F)).negate().normalize();
+        const want = new THREE.Matrix4().makeBasis(F, new THREE.Vector3().crossVectors(P, F), P);
+        const place = (target: THREE.Vector3) => {
+          solveTwoBone(ade.bone(`upperarm_${lr}`), ade.bone(`lowerarm_${lr}`), hand, target.clone(), pole.clone(), 1);
+          // the hand's own frame, from its knuckles: along the fingers, across them, out of the palm
+          const cF = wp(finger('2')).sub(wp(hand)).normalize();
+          const cA = wp(finger('1')).sub(wp(finger('4')));
+          cA.addScaledVector(cF, -cA.dot(cF)).normalize();
+          const cur = new THREE.Matrix4().makeBasis(cF, cA, new THREE.Vector3().crossVectors(cF, cA));
+          const turn = new THREE.Quaternion().setFromRotationMatrix(want.clone().multiply(cur.transpose()));
+          const world = hand.getWorldQuaternion(new THREE.Quaternion()).premultiply(turn);
+          hand.quaternion.copy(hand.parent!.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(world));
+          hand.updateMatrixWorld(true);
+        };
+        place(grip);
+        for (const f of [0, 1, 2, 3, 4]) for (const j of ['', '1', '2']) finger(`${f}${j}`).rotateZ(f ? 1 : 0.4);   // fingers closed, thumb half in
+        hand.updateMatrixWorld(true);
+        // then shift the arm so the rim runs through the middle of the closed fist
+        const fist = ['21', '31', '11', '41'].reduce((c, n) => c.add(wp(finger(n))), new THREE.Vector3()).multiplyScalar(0.25);
+        place(grip.add(rim.clone().sub(fist)));
         hand.updateMatrixWorld(true);
       }
     }
