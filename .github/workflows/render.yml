@@ -12,7 +12,7 @@ on:
       story:
         description: Story
         type: choice
-        options: [lantern-keeper, route-7]
+        options: [lantern-keeper, route-7, the-other-lamp]
         default: lantern-keeper
       size:
         description: Size
