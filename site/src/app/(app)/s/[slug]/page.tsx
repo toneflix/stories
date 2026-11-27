@@ -13,7 +13,8 @@ export async function generateMetadata({ params }: PageProps<'/s/[slug]'>): Prom
   return {
     title: story.title,
     description: story.caption,
-    openGraph: { title: story.title, description: story.caption, images: [story.poster], videos: [story.video] },
+    alternates: { canonical: `/stories/${story.slug}` },
+    openGraph: { url: `/s/${story.slug}`, title: story.title, description: story.caption, images: [story.poster], videos: [story.video] },
     twitter: { card: 'summary_large_image', title: story.title, images: [story.poster] },
   };
 }

@@ -477,6 +477,28 @@ input {
   font-size: 17px;
 }
 
+.story-page .feature {
+  align-items: start;
+}
+
+.story-page h1 {
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.1;
+}
+
+.story-video {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  border-radius: 24px;
+  background: #000;
+  display: block;
+}
+
+.caption-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .stills {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -507,6 +529,50 @@ input {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
+}
+
+.section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 720px;
+}
+
+.section-head p {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.code-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.code-steps p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.step-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--primary);
+}
+
+.code-link {
+  align-self: flex-start;
 }
 
 .card {
@@ -623,9 +689,17 @@ input {
     display: none;
   }
 
+  .story-video {
+    width: auto;
+    max-width: 100%;
+    max-height: 70dvh;
+    margin: 0 auto;
+  }
+
   .hero,
   .feature,
-  .how-grid {
+  .how-grid,
+  .code-steps {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -984,18 +1058,58 @@ input {
   font-weight: 600;
 }
 
-.progress {
+.scrubber {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 4px;
-  background: #2e323b;
+  height: 20px;
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+  touch-action: none;
+  z-index: 2;
 }
 
-.progress div {
+.scrubber-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.22);
+  transition: height 0.15s;
+}
+
+.scrubber:hover .scrubber-track,
+.scrubber.dragging .scrubber-track,
+.scrubber:focus-visible .scrubber-track {
+  height: 8px;
+}
+
+.scrubber-fill {
   height: 100%;
   background: var(--primary);
+}
+
+.scrubber-thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--text);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.scrubber:hover .scrubber-thumb,
+.scrubber.dragging .scrubber-thumb,
+.scrubber:focus-visible .scrubber-thumb {
+  opacity: 1;
+}
+
+.scrubber:focus-visible {
+  outline: none;
 }
 
 .rail {
@@ -1015,6 +1129,8 @@ input {
   background: none;
   font-size: 13px;
   font-weight: 600;
+  color: inherit;
+  text-decoration: none;
 }
 
 .rail-icon {
@@ -1088,27 +1204,24 @@ input {
     padding-right: 76px;
   }
 
-  .caption-hide {
-    margin-right: -60px;
-  }
-
   .rail {
     position: absolute;
     right: 10px;
-    bottom: 210px;
+    bottom: 28px;
     padding: 0;
-    gap: 16px;
+    gap: 10px;
     z-index: 2;
   }
 
   .rail-icon {
     background: none;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
   }
 
   .rail-btn {
+    gap: 2px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
     font-size: 12px;
   }
@@ -1382,33 +1495,33 @@ input {
   width: 56px;
   height: 56px;
   border-radius: 50%;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--bg);
-  font-weight: 700;
-  font-size: 18px;
-  background: var(--text-2);
+  color: var(--text);
+  background: var(--surface-3);
 }
 
 .mark-whatsapp {
-  background: #7fd8a0;
+  color: #fff;
+  background: #25d366;
 }
 
 .mark-x {
-  background: var(--text);
+  color: #fff;
+  background: #000;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
 }
 
 .mark-facebook {
-  background: #9db2ff;
+  color: #0866ff;
+  background: #fff;
 }
 
 .mark-telegram {
-  background: #8fd3f5;
-}
-
-.mark-email {
-  background: #c9b6ff;
+  color: #26a5e4;
+  background: #fff;
 }
 
 .share-link {
