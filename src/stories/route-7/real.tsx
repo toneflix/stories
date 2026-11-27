@@ -27,10 +27,10 @@ export function RealAtmosphere() {
       const s = new Sky();
       s.scale.setScalar(1000);
       const u = s.material.uniforms;
-      u.turbidity.value = 6; u.rayleigh.value = 1.6; u.mieCoefficient.value = 0.006; u.mieDirectionalG.value = 0.85;
+      u.turbidity.value = 4; u.rayleigh.value = 2.2; u.mieCoefficient.value = 0.006; u.mieDirectionalG.value = 0.85;
       u.cloudCoverage.value = 0.45; u.cloudDensity.value = 0.5; u.cloudScale.value = 0.00035;
       // the scattering model is far brighter than the lit scene: bring it down to match
-      s.material.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('gl_FragColor = vec4( texColor, 1.0 );', 'gl_FragColor = vec4( texColor * 0.17, 1.0 );'); };
+      s.material.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('gl_FragColor = vec4( texColor, 1.0 );', 'gl_FragColor = vec4( texColor * 0.11, 1.0 );'); };
       return s;
     };
     const sky = make(), envSky = make(), envScene = new THREE.Scene();
@@ -43,7 +43,7 @@ export function RealAtmosphere() {
   useMemo(() => {
     scene.fog = new THREE.FogExp2('#c9b9b0', 0.0032);
     scene.add(target);
-    scene.environmentIntensity = 2.4;
+    scene.environmentIntensity = 1.5;
   }, [scene, target]);
 
   useStoryFrame(({ t }) => {
@@ -60,8 +60,8 @@ export function RealAtmosphere() {
     col(SKY.fog, day, (scene.fog as THREE.FogExp2).color).lerp(state.c.set('#a9b4bd'), 0.35);
     const lowSun = 1 - smoothstep(0.05, 0.6, dir.y);
     sun.current!.color.copy(col(SKY.sun, day, state.c)).lerp(new THREE.Color('#fff4e6'), 1 - lowSun);
-    sun.current!.intensity = 3.2 - lowSun * 1.2;
-    hemi.current!.intensity = 0.35;
+    sun.current!.intensity = 2.5 - lowSun * 0.9;
+    hemi.current!.intensity = 0.25;
     const p = routePose(BUS_S.sample(t)).pos;
     target.position.copy(p);
     sun.current!.position.copy(p).addScaledVector(dir, 80);
