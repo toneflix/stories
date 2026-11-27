@@ -5,7 +5,7 @@ import { StoryGrid } from '@/components/StoryGrid';
 import { findReleased, type ReleasedStory } from '@/content/stories';
 import { savedStoryIds } from '@/lib/social';
 
-export const metadata: Metadata = { title: 'Saved' };
+export const metadata: Metadata = { title: 'Saved', robots: { index: false } };
 
 export default async function SavedPage() {
   const session = await auth();
