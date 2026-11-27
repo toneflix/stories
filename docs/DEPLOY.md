@@ -1,6 +1,6 @@
 # Deploying
 
-The website lives in `site/` and runs on Vercel. The live stories ("Play it live") are served separately by GitHub Pages.
+The website lives in `site/` and runs on Vercel. Each build also builds the live stories ("Play it live") from the repo root into `site/public/play`, so they are served at `/play/` on the same site, previews included.
 
 ## Website on Vercel
 
@@ -8,6 +8,7 @@ The website lives in `site/` and runs on Vercel. The live stories ("Play it live
 
 1. In Vercel, choose **Add New → Project** and import `toneflix/stories`.
 2. Set **Root Directory** to `site`. Vercel detects Next.js; leave the build settings as they are.
+3. Keep **Include files outside the root directory in the Build Step** on (it is on by default). The live stories are built from the repo root.
 
 ### 2. Add the database
 
@@ -27,7 +28,7 @@ In **Settings → Environment Variables**:
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | For Google sign-in | From Google Cloud, see below. |
 | `AUTH_RESEND_KEY` | For email sign-in | An API key from [Resend](https://resend.com). |
 | `AUTH_EMAIL_FROM` | With Resend | Sender, e.g. `Toneflix Stories <stories@toneflix.net>`. The domain must be verified in Resend. |
-| `NEXT_PUBLIC_LIVE_BASE_URL` | No | Where "Play it live" links go. Defaults to `https://toneflix.github.io/stories`. |
+| `NEXT_PUBLIC_LIVE_BASE_URL` | No | Where "Play it live" links go. Defaults to `/play`, the copy built with the site. |
 
 Set up at least one sign-in method. Without one, visitors can watch but nobody can like, comment or save.
 
@@ -49,14 +50,11 @@ Deploy from the Vercel dashboard, or push to `main`. Then add your domain under 
 - The homepage and `/watch` load and the video plays.
 - Signing in works, and a like is still there after a page reload.
 
-## Live stories on GitHub Pages
+## Live stories
 
-The live stories are built by the GitHub Pages workflow in `.github/workflows/pages.yml` on each push to `main`.
+`site/scripts/build-player.mjs` runs first in `npm run build`. It installs the root project, runs its Vite build and copies `dist/` to `site/public/play`. A story plays at `/play/stories/<id>/index.html`.
 
-1. In the repository, open **Settings → Pages**.
-2. Set **Source** to **GitHub Actions**.
-
-They are then served at `https://toneflix.github.io/stories/`. If they move to another address, set `NEXT_PUBLIC_LIVE_BASE_URL` on Vercel and redeploy.
+To try it locally, run `npm run build:player` in `site/`, then `npm run dev`.
 
 ## Running locally
 
