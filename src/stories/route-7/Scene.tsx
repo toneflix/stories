@@ -15,7 +15,7 @@ import { BUS, ROUTE_LENGTH, routePose, shelterPose, glowTexture } from './world'
 import { buildCity, buildPalms, buildPoles, buildShelter, SHELTERS } from './city';
 import { buildBus, type BusModel } from './bus';
 import { REAL } from '../../engine/look';
-import { RealAtmosphere, RealWater, Skyline, RealStreet, RealBusBody, weather, polishBus } from './real';
+import { RealAtmosphere, RealWater, Skyline, RealStreet, RealBusBody, weather, polishBus, doorPanels } from './real';
 
 const asset = (p: string) => publicUrl(`assets/${p}`);
 
@@ -263,6 +263,9 @@ function Bus({ model }: { model: BusModel }) {
     const dw = BUS.door.z1 - BUS.door.z0;
     model.door.position.z = (BUS.door.z0 + BUS.door.z1) / 2 - s.door * (dw + 0.02);
     model.door.position.x = -BUS.width / 2 + 0.03 - Math.min(1, s.door * 4) * 0.08;
+    // the T3's own door: out a little, then back along the side
+    const t3door = doorPanels.get(model);
+    if (t3door) t3door.position.set(-Math.min(1, s.door * 4) * 0.07, 0, -s.door * 1.0);
     model.headlights.color.copy(dim).lerp(on, s.lights);
     for (const g of model.headGlow) { g.material.opacity = s.lights * 0.9; g.scale.setScalar(1.0 + s.lights * 0.8); }
     model.brake.color.copy(brakeOff).lerp(brakeOn, Math.max(s.brake, s.lights * 0.25));

@@ -126,6 +126,8 @@ export function shelterPoint(i: number, out: number, along: number, up: number):
 
 /** The realistic look's bus is lower: its cabin sits this much further down. */
 const LOW = REAL ? 0.42 : 0;
+/** ...and its doorway sits further back, so shots through it move back too. */
+const DOOR_BACK = REAL ? 0.55 : 0, DOOR_OUT = REAL ? 0.1 : 0, DOOR_WIDEN = REAL ? 10 : 0;
 const driverFace = (t: number) => busPoint(t, 0.45, 1.27 - LOW, 1.35);
 
 /** The narrator's camera. Vertical frame (9:16): favour height, stage in depth. */
@@ -160,10 +162,10 @@ export const CAMERA: CameraKey[] = [
   { t: 66, pos: shelterPoint(2, 0.7, -2.0, 1.9), look: shelterPoint(2, -1.0, 0.6, 1.1), fov: 50 },
   { t: 69.4, pos: shelterPoint(2, 0.7, -2.2, 1.85), look: shelterPoint(2, -1.4, 0.6, 1.0), fov: 50 },
   // through the open door: the conversation and the fare
-  { t: 69.5, pos: busPoint(69.5, -1.8, 1.2, 0.7), look: busPoint(69.5, 0.4, 1.12, 0.85), fov: 46, cut: true },
-  { t: 79, pos: busPoint(79, -1.7, 1.2, 0.75), look: busPoint(79, 0.4, 1.1, 0.9), fov: 43 },
-  { t: 84, pos: busPoint(84, -1.6, 1.2, 0.8), look: busPoint(84, 0.35, 1.1, 1.05), fov: 38 },
-  { t: 88.4, pos: busPoint(88.4, -1.6, 1.2, 0.8), look: busPoint(88.4, 0.35, 1.12, 0.9), fov: 40 },
+  { t: 69.5, pos: busPoint(69.5, -1.8 - DOOR_OUT, 1.2 - LOW, 0.7 - DOOR_BACK), look: busPoint(69.5, 0.4, 1.12 - LOW, 0.85), fov: 46 + DOOR_WIDEN, cut: true },
+  { t: 79, pos: busPoint(79, -1.7 - DOOR_OUT, 1.2 - LOW, 0.75 - DOOR_BACK), look: busPoint(79, 0.4, 1.1 - LOW, 0.9), fov: 43 + DOOR_WIDEN },
+  { t: 84, pos: busPoint(84, -1.6 - DOOR_OUT, 1.2 - LOW, 0.8 - DOOR_BACK), look: busPoint(84, 0.35, 1.1 - LOW, 1.05), fov: 38 + DOOR_WIDEN },
+  { t: 88.4, pos: busPoint(88.4, -1.6 - DOOR_OUT, 1.2 - LOW, 0.8 - DOOR_BACK), look: busPoint(88.4, 0.35, 1.12 - LOW, 0.9), fov: 40 + DOOR_WIDEN },
   // away into the sunset
   { t: 88.5, pos: busPoint(88.5, -4.5, 1.6, -7), look: busPoint(88.5, 0, 1.0, 0), fov: 46, cut: true },
   { t: 101, pos: busPoint(88.5, -1.5, 3.2, -12), look: busPoint(101, 0, 1.5, 6), fov: 42 },
@@ -171,5 +173,5 @@ export const CAMERA: CameraKey[] = [
 ];
 
 /** Bus-space points the coin passes through: her hand, the handover, in front of his eyes, the tin. */
-export const FARE = { from: [0.3, 1.25, 0.6] as V3, to: [0.08, 1.35, 1.05] as V3, view: [0.32, 1.55, 1.75] as V3, tin: [0.05, 1.3, 1.95] as V3 };
+export const FARE = { from: [0.3, 1.25 - LOW, 0.6] as V3, to: [0.08, 1.35 - LOW, 1.05] as V3, view: [0.32, 1.55 - LOW, 1.75] as V3, tin: [0.05, 1.3 - LOW, 1.95] as V3 };
 export { BUS };

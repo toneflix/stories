@@ -260,6 +260,8 @@ const prop = (name: string) => publicUrl(`assets/props/${name}.glb`);
  * see-through so you can see them.
  */
 const CABIN_DROP = 0.42;
+/** The T3's sliding door, cut from its body, for the scene to slide open. */
+export const doorPanels = new WeakMap<BusModel, THREE.Group>();
 /** Where the T3's texture paints its windows (a grey-green): 1 on glass, 0 on bodywork. */
 const GLASSY = `float glassy(vec3 c) {
   return smoothstep(0.0, 0.03, c.g - c.r) * smoothstep(-0.01, 0.02, c.b - c.r) * step(max(c.g, c.b), 0.8);
@@ -275,6 +277,8 @@ export function RealBusBody({ model }: { model: BusModel }) {
     model.cabin.position.y = -CABIN_DROP;
     model.driverSeat.y -= CABIN_DROP; model.passengerSeat.y -= CABIN_DROP;
     model.door.visible = false;
+    // no front bench on the kerb side: it would stand between the doorway and the driver
+    for (const c of model.cabin.children) if (Math.abs(c.position.x + 0.45) < 0.01) c.visible = false;
     // daylight bouncing in through the glass: a soft fill at the windscreen and one down the
     // aisle, so faces and hands inside read in every shot (no shadows; the body still shades)
     for (const [x, y, z, i] of [[0.2, 1.75, 2.0, 2.2], [0, 1.85, -0.4, 1.6]]) {
@@ -338,6 +342,43 @@ export function RealBusBody({ model }: { model: BusModel }) {
     });
     model.group.add(body);
     model.headlights.visible = false;
+    // the sliding door: a rectangle on the kerb side is cut out of the body, and a copy of the
+    // body that keeps only that rectangle is the door panel, free to slide back along the side
+    body.updateMatrixWorld(true);
+    const inv = new THREE.Matrix4().copy(model.group.matrixWorld).invert();
+    // bus-space z from, z to, y from, y to: from behind the front door's pillar to the gutter
+    const doorRect = { value: new THREE.Vector4(-0.3, 0.72, 0.1, 1.66) };
+    const panel = new THREE.Group();
+    const cutAway = (mat: THREE.Material, rel: THREE.Matrix4, keepInside: boolean, key: string) => {
+      const prev = mat.onBeforeCompile.bind(mat);
+      mat.onBeforeCompile = (sh, r) => {
+        prev(sh, r);
+        sh.uniforms.uRel = { value: rel };
+        sh.uniforms.uDoor = doorRect;
+        sh.vertexShader = 'uniform mat4 uRel;\nvarying vec3 vBus;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvBus = (uRel * vec4(position, 1.0)).xyz;');
+        sh.fragmentShader = 'uniform vec4 uDoor;\nvarying vec3 vBus;\n' + sh.fragmentShader.replace('void main() {', `void main() {
+          bool inDoor = vBus.x < ${(-BUS.width / 2 + 0.35).toFixed(3)} && vBus.z > uDoor.x && vBus.z < uDoor.y && vBus.y > uDoor.z && vBus.y < uDoor.w;
+          if (inDoor != ${keepInside}) discard;`);
+      };
+      mat.customProgramCacheKey = () => key;
+    };
+    for (const m of meshes) {
+      const rel = inv.clone().multiply(m.matrixWorld);
+      const skin = m.children[0] as THREE.Mesh;
+      const dm = (m.material as THREE.Material).clone(), ds = (skin.material as THREE.Material).clone();
+      dm.onBeforeCompile = (m.material as THREE.Material).onBeforeCompile; ds.onBeforeCompile = (skin.material as THREE.Material).onBeforeCompile;
+      cutAway(m.material as THREE.Material, rel, false, 't3body-cut');
+      cutAway(skin.material as THREE.Material, rel, false, 't3glass-cut');
+      cutAway(dm, rel, true, 't3body-door');
+      cutAway(ds, rel, true, 't3glass-door');
+      const d = new THREE.Mesh(m.geometry, dm);
+      d.applyMatrix4(rel);
+      d.castShadow = d.receiveShadow = true;
+      const sk = new THREE.Mesh(m.geometry, ds); sk.renderOrder = 2; d.add(sk);
+      panel.add(d);
+    }
+    model.group.add(panel);
+    doorPanels.set(model, panel);
   }, [gltf, model]);
   return null;
 }
