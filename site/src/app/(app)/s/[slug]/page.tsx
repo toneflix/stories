@@ -2,14 +2,19 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Feed } from '@/components/Feed';
 import { findReleased, releasedStories } from '@/content/stories';
+import { findPreview, previewsForViewer } from '@/lib/access';
 
 export function generateStaticParams() {
   return releasedStories.map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<'/s/[slug]'>): Promise<Metadata> {
-  const story = findReleased((await params).slug);
-  if (!story) return {};
+  const { slug } = await params;
+  const story = findReleased(slug);
+  if (!story) {
+    const preview = await findPreview(slug);
+    return preview ? { title: preview.title, robots: { index: false } } : {};
+  }
   return {
     title: story.title,
     description: story.caption,
@@ -20,7 +25,10 @@ export async function generateMetadata({ params }: PageProps<'/s/[slug]'>): Prom
 }
 
 export default async function SharedStoryPage({ params }: PageProps<'/s/[slug]'>) {
-  const story = findReleased((await params).slug);
-  if (!story) notFound();
-  return <Feed stories={releasedStories} startSlug={story.slug} />;
+  const { slug } = await params;
+  const story = findReleased(slug);
+  if (story) return <Feed stories={releasedStories} startSlug={story.slug} />;
+  const previews = await previewsForViewer();
+  if (!previews.some((s) => s.slug === slug)) notFound();
+  return <Feed stories={[...releasedStories, ...previews]} startSlug={slug} />;
 }
