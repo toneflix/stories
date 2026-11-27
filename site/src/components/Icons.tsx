@@ -117,6 +117,12 @@ export const MailIcon = ({ size, className }: P) => (
   </svg>
 );
 
+export const DownloadIcon = ({ size, className }: P) => (
+  <svg {...stroke(size, className)}>
+    <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+  </svg>
+);
+
 export const TrashIcon = ({ size = 16, className }: P) => (
   <svg {...stroke(size, className)}>
     <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
