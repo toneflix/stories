@@ -17,6 +17,7 @@ import path from 'node:path';
 import os from 'node:os';
 
 const MAX_DURATION = 213; // 3:33
+const launched = Date.now();
 const args = process.argv.slice(2);
 const id = args.find((a) => !a.startsWith('--'));
 const flag = (n) => args.includes(`--${n}`);
@@ -102,3 +103,5 @@ await browser.close();
 await server.close();
 fs.rmSync(tmp, { recursive: true });
 console.log(`\nwrote ${path.relative(process.cwd(), out)}`);
+const took = Math.round((Date.now() - launched) / 1000);
+console.log(`took ${Math.floor(took / 60)}m ${took % 60}s`);
