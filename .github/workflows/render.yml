@@ -30,7 +30,7 @@ env:
   LOOK: ${{ inputs.look }}
 jobs:
   plan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       parts: ${{ steps.plan.outputs.parts }}
       count: ${{ steps.plan.outputs.count }}
@@ -44,7 +44,7 @@ jobs:
 
   render:
     needs: plan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 300
     strategy:
       matrix:
@@ -66,7 +66,7 @@ jobs:
 
   stitch:
     needs: render
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
