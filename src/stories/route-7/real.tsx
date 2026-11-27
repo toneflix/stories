@@ -275,6 +275,13 @@ export function RealBusBody({ model }: { model: BusModel }) {
     model.cabin.position.y = -CABIN_DROP;
     model.driverSeat.y -= CABIN_DROP; model.passengerSeat.y -= CABIN_DROP;
     model.door.visible = false;
+    // daylight bouncing in through the glass: a soft fill at the windscreen and one down the
+    // aisle, so faces and hands inside read in every shot (no shadows; the body still shades)
+    for (const [x, y, z, i] of [[0.2, 1.75, 2.0, 2.2], [0, 1.85, -0.4, 1.6]]) {
+      const l = new THREE.PointLight('#fff1dd', i * 1.4, 3.2, 1.6);
+      l.position.set(x, y, z);
+      model.cabin.add(l);
+    }
     for (const c of model.group.children) if ((c as THREE.Mesh).isMesh) c.visible = false;
     const body = gltf.scene.clone();
     // measure the body alone: the details mesh carries a wide ground-shadow card
