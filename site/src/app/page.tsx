@@ -117,6 +117,34 @@ export default function Home() {
         </div>
       </section>
 
+      <section id="code" className="wrap how">
+        <div className="section-head">
+          <h2>Made entirely in code</h2>
+          <p className="muted">No cameras and no animation software. Each story is a program, and the film is what it looks like when it runs.</p>
+        </div>
+        <ol className="code-steps">
+          <li className="card">
+            <span className="step-num">1</span>
+            <h3>Build the world</h3>
+            <p className="muted">The hills, streets, skies and light are all written in code. The characters are free 3D models, and code tells them how to move.</p>
+          </li>
+          <li className="card">
+            <span className="step-num">2</span>
+            <h3>Direct the scene</h3>
+            <p className="muted">A script says where the camera goes, who moves, and when the narrator speaks. The voices are generated from the script.</p>
+          </li>
+          <li className="card">
+            <span className="step-num">3</span>
+            <h3>Record or play</h3>
+            <p className="muted">For the video, a computer plays the story and saves every frame. The live link runs the same code on your screen, so you can step in.</p>
+          </li>
+        </ol>
+        <a href={repoUrl} className="btn btn-outline code-link">
+          <GitHubIcon size={18} />
+          Read the code
+        </a>
+      </section>
+
       <section className="wrap">
         <div className="notify">
           <div>
