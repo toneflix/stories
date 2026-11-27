@@ -30,9 +30,9 @@ export const CUES: Cue[] = [
   { at: 2.5, type: 'voice', id: 'r1' }, { at: 12.5, type: 'voice', id: 'r2' }, { at: 37.0, type: 'voice', id: 'r3' },
   ...[19.5, 20.5, 21.5, 22.5].map((at): Cue => ({ at, type: 'sfx', id: 'tick' })),
   { at: 24.0, type: 'sfx', id: 'click' },
-  { at: 52.0, type: 'wait', target: 'switch', prompt: 'Answer it' },
-  { at: 52.3, type: 'sfx', id: 'switch' },
-  { at: 53.1, type: 'sfx', id: 'switch' },
+  { at: 50.2, type: 'wait', target: 'switch', prompt: 'Answer it' },
+  { at: 50.4, type: 'sfx', id: 'switch' },
+  { at: 51.1, type: 'sfx', id: 'switch' },
   { at: 67.3, type: 'sfx', id: 'switch' },
   { at: 69.6, type: 'sfx', id: 'gate' },
   { at: 86.6, type: 'sfx', id: 'creak' },
@@ -46,13 +46,13 @@ export const S = beats({ ceiling: 1, lampA: 0, lampB: 0, minute: 46, cup: 0, rea
   tl.fromTo(s, { lampB: 0 }, { lampB: 1, duration: 0.08 }, 24.0);
   for (const at of [56.6, 57.6]) tl.fromTo(s, { lampB: 1 }, { lampB: 0, duration: 0.05 }, at).fromTo(s, { lampB: 0 }, { lampB: 1, duration: 0.05 }, at + 0.45);
   // her light: off and on at the switch, off as she leaves
-  tl.fromTo(s, { ceiling: 1 }, { ceiling: 0, duration: 0.05 }, 52.3).fromTo(s, { ceiling: 0 }, { ceiling: 1, duration: 0.05 }, 53.1)
+  tl.fromTo(s, { ceiling: 1 }, { ceiling: 0, duration: 0.05 }, 50.4).fromTo(s, { ceiling: 0 }, { ceiling: 1, duration: 0.05 }, 51.1)
     .fromTo(s, { ceiling: 1 }, { ceiling: 0, duration: 0.05 }, 67.3);
   // her own lamp, in her empty flat
   tl.fromTo(s, { lampA: 0 }, { lampA: 1, duration: 0.08 }, 101.5);
-  // the cup goes down on the sill; her hand to the switch and back
-  tl.fromTo(s, { cup: 0 }, { cup: 1, duration: 1.1, ease: 'sine.inOut' }, 44.2);
-  tl.fromTo(s, { reach: 0 }, { reach: 1, duration: 0.6, ease: 'sine.out' }, 51.5).fromTo(s, { reach: 1 }, { reach: 0, duration: 0.6 }, 53.4);
+  // the cup goes down on the sill (hand there at 0.5); her hand to the switch as she gets there, and back
+  tl.fromTo(s, { cup: 0 }, { cup: 1, duration: 1.6, ease: 'none' }, 46.4);
+  tl.fromTo(s, { reach: 0 }, { reach: 1, duration: 0.5, ease: 'sine.out' }, 49.7).fromTo(s, { reach: 1 }, { reach: 0, duration: 0.5 }, 51.35);
   tl.fromTo(s, { gate: 0 }, { gate: 1, duration: 1.2, ease: 'sine.inOut' }, 69.6).fromTo(s, { gate: 1 }, { gate: 0, duration: 1.5 }, 72.5);
   tl.fromTo(s, { gateB: 0 }, { gateB: 1, duration: 1.2, ease: 'sine.inOut' }, 77.2);
   tl.fromTo(s, { roomDoor: 0.12 }, { roomDoor: 1.35, duration: 1.8, ease: 'sine.inOut' }, 86.6);
@@ -65,12 +65,12 @@ const fB = (x: number, z: number, y = FY): V3 => B(x, y, z);
 /** Facing angles (about +y, 0 = +z). */
 export const FACE = { north: 0, south: Math.PI, west: -Math.PI / 2, east: Math.PI / 2 };
 export const WAYS: Way[] = [
-  { t: 0, p: fA(1.75, -0.9), face: FACE.north },
-  { t: 45.6, p: fA(1.75, -0.9), face: FACE.north },
-  { t: 48.4, p: fA(0.62, -1.55), face: FACE.west },
-  { t: 53.8, p: fA(0.62, -1.55), face: FACE.west },
-  { t: 56.0, p: fA(1.7, -0.9), face: FACE.north },
-  { t: 66.2, p: fA(1.7, -0.9), face: FACE.north },
+  { t: 0, p: fA(1.75, -0.75), face: FACE.north },
+  { t: 48.0, p: fA(1.75, -0.75), face: FACE.north },
+  { t: 50.0, p: fA(0.62, -1.55), face: FACE.west },
+  { t: 51.8, p: fA(0.62, -1.55), face: FACE.west },
+  { t: 53.8, p: fA(1.7, -0.75), face: FACE.north },
+  { t: 66.2, p: fA(1.7, -0.75), face: FACE.north },
   { t: 67.8, p: fA(0.5, -0.85) },
   // out through the street door and across the road to the other block's door
   { t: 70.0, p: A(-1.75, 0.3, -0.6) },
@@ -96,12 +96,13 @@ export const HER_CLIPS = new ClipTrack([
   { clip: 'Cup_Idle_Loop', at: 0 },
   { clip: 'Cup_Drink', at: 14.2, fade: 0.5 },
   { clip: 'Cup_Idle_Loop', at: 19.0, fade: 0.6 },
-  { clip: 'Idle_Loop', at: 44.0, fade: 0.6 },
-  { clip: 'Walk_Slow_Loop', at: 45.6, fade: 0.4 },
-  { clip: 'Idle_Loop', at: 48.4, fade: 0.4 },
-  { clip: 'Walk_Slow_Loop', at: 53.8, fade: 0.4 },
-  { clip: 'Nervous_Loop', at: 56.0, fade: 0.5 },
+  { clip: 'Idle_Loop', at: 47.2, fade: 0.6 },
+  { clip: 'Walk_Slow_Loop', at: 48.0, fade: 0.4 },
+  { clip: 'Idle_Loop', at: 50.0, fade: 0.4 },
+  { clip: 'Walk_Slow_Loop', at: 51.8, fade: 0.4 },
+  { clip: 'Nervous_Loop', at: 53.8, fade: 0.5 },
   { clip: 'Walk_Slow_Loop', at: 66.2, fade: 0.4 },
+  { clip: 'Walk_Loop', at: 70.0, fade: 0 },
   { clip: 'Walk_Slow_Loop', at: 79.0, fade: 0 },
   { clip: 'Push_Door', at: 85.4, fade: 0.4 },
   { clip: 'Walk_Slow_Loop', at: 87.4, fade: 0.5 },
@@ -122,12 +123,26 @@ export function herAt(t: number): { p: V3; face: number } {
   const dx = b.p[0] - a.p[0], dz = b.p[2] - a.p[2];
   const moving = Math.hypot(dx, dz) > 0.05 && k < 1;
   const walk = Math.atan2(dx, dz);
-  let face = moving ? walk : (b.face ?? a.face ?? walk);
+  let face = moving ? turn(a.face ?? walk, walk, Math.min(1, k / 0.2)) : (b.face ?? a.face ?? walk);
   // turn into a set facing over the last part of a walk
   if (moving && b.face !== undefined) face = turn(walk, b.face, Math.max(0, (k - 0.6) / 0.4));
   if (!moving && a.face !== undefined && b.face !== undefined) face = turn(a.face, b.face, k);
   return { p, face };
 }
+/** Metres she has walked by time t, so her steps can keep pace with the ground. */
+const DIST = WAYS.reduce<number[]>((d, w, i) => {
+  const p = WAYS[i - 1]?.p;
+  d.push(i === 0 ? 0 : d[i - 1] + (w.t - WAYS[i - 1].t < 0.05 ? 0 : Math.hypot(w.p[0] - p![0], w.p[2] - p![2])));
+  return d;
+}, []);
+export function walkedAt(t: number) {
+  let i = 0;
+  while (i < WAYS.length - 2 && t > WAYS[i + 1].t) i++;
+  const k = Math.min(1, Math.max(0, (t - WAYS[i].t) / (WAYS[i + 1].t - WAYS[i].t)));
+  return DIST[i] + (DIST[i + 1] - DIST[i]) * k;
+}
+/** How far each walk clip carries her in one second of its own time. */
+export const STRIDE: Record<string, number> = { Walk_Slow_Loop: 1.34 / 1.5, Walk_Loop: 1.43 / 1.2 };
 const turn = (a: number, b: number, k: number) => { const d = Math.atan2(Math.sin(b - a), Math.cos(b - a)); return a + d * k; };
 
 /** Heights for the camera. */
@@ -146,23 +161,30 @@ export const CAMERA: CameraKey[] = [
   { t: 23.01, pos: A(1.85, EYE, 0.25), look: B(1.9, FY + 1.0, -0.4), fov: 26, cut: true },
   { t: 30, pos: A(1.8, EYE, 0.3), look: B(1.9, FY + 1.0, -0.4), fov: 18 },
   // her face, from outside her window
-  { t: 30.01, pos: A(1.2, EYE - 0.1, -0.32), look: A(1.75, EYE - 0.1, -0.95), fov: 48, cut: true },
-  { t: 36, pos: A(1.25, EYE - 0.1, -0.32), look: A(1.75, EYE - 0.1, -0.95), fov: 44 },
+  { t: 30.01, pos: A(1.15, EYE - 0.1, -0.3), look: A(1.75, EYE - 0.1, -0.8), fov: 54, cut: true },
+  { t: 36, pos: A(1.2, EYE - 0.1, -0.3), look: A(1.75, EYE - 0.1, -0.8), fov: 50 },
   // inside the empty flat: the lamp burns, no one there
   { t: 36.01, pos: B(1.2, EYE + 0.2, -4.2), look: B(2.3, FY + 0.9, -0.5), fov: 44, cut: true },
   { t: 44, pos: B(1.5, EYE + 0.1, -3.7), look: B(2.3, FY + 0.85, -0.5), fov: 40 },
-  // back with her: she puts the cup down and goes to the switch
+  // back with her: she puts the cup down, answers with the switch and hurries back to the window
   { t: 44.01, pos: A(3.55, EYE + 0.2, -3.9), look: A(1.2, FY + 1.2, -0.9), fov: 52, cut: true },
+  { t: 46.2, pos: A(3.5, EYE + 0.18, -3.75), look: A(1.2, FY + 1.2, -0.9), fov: 50 },
+  // the cup on the sill, the lamp across the way beyond it
+  { t: 46.21, pos: A(0.85, FY + 1.3, -1.05), look: A(1.6, FY + 1.0, -0.2), fov: 50, cut: true },
+  { t: 48.0, pos: A(0.9, FY + 1.28, -1.0), look: A(1.6, FY + 1.0, -0.2), fov: 46 },
+  { t: 48.01, pos: A(3.5, EYE + 0.18, -3.75), look: A(1.2, FY + 1.2, -0.9), fov: 50, cut: true },
   { t: 53.8, pos: A(3.5, EYE + 0.15, -3.6), look: A(0.8, FY + 1.3, -1.3), fov: 48, hold: true },
   // from the window: the answer
   { t: 53.81, pos: A(1.85, EYE, 0.25), look: B(1.9, FY + 1.0, -0.4), fov: 30, cut: true },
   { t: 61, pos: A(1.8, EYE, 0.3), look: B(1.9, FY + 1.0, -0.4), fov: 20 },
   // her face again
-  { t: 61.01, pos: A(1.2, EYE - 0.1, -0.32), look: A(1.7, EYE - 0.1, -0.95), fov: 46, cut: true },
-  { t: 66.5, pos: A(1.25, EYE - 0.1, -0.32), look: A(1.7, EYE - 0.1, -0.95), fov: 40 },
+  { t: 61.01, pos: A(1.15, EYE - 0.1, -0.3), look: A(1.7, EYE - 0.1, -0.8), fov: 52, cut: true },
+  { t: 66.5, pos: A(1.2, EYE - 0.1, -0.3), look: A(1.7, EYE - 0.1, -0.8), fov: 46 },
   // the street: her window goes dark, she comes out and crosses
   { t: 66.51, pos: B(-4.5, 1.2, 2.6), look: A(0.5, 6.2, 0), fov: 50, cut: true },
   { t: 70.5, pos: B(-4.2, 1.3, 2.4), look: A(-1.0, 2.0, 0), fov: 46 },
+  { t: 75.5, pos: B(-4.3, 1.4, 2.0), look: B(-0.74, 1.2, 4.1), fov: 46 },
+  { t: 77.4, pos: B(-4.35, 1.45, 1.8), look: B(-1.7, 1.2, 1.2), fov: 46 },
   { t: 79, pos: B(-4.4, 1.5, 1.6), look: B(-1.75, 1.3, 0), fov: 46 },
   // up the last flight
   { t: 79.01, pos: fB(-0.3, -0.45, FY + 1.3), look: fB(-0.9, -4.0, FY - 0.4), fov: 58, cut: true },

@@ -11,12 +11,11 @@ import { MOBILE } from '../../engine/Player';
 import { smoothstep } from '../../engine/timeline';
 import {
   buildFlatsStreet, Neighbours, NightSky, buildLamp, buildSideTable, buildSettee, buildChair, fitWallClock,
-  buildCurtains, buildSocket, buildRug, LIGHTS, LIGHT_Y, STAIR, level, ROOM,
+  buildCurtains, buildSocket, buildRug, groundAt, LIGHTS, LIGHT_Y, STAIR, level, ROOM,
 } from '../../sets/flats-street';
-import { A, B, CAMERA, FY, HER_CLIPS, S, SPOT, herAt } from './script';
+import { A, B, CAMERA, FY, HER_CLIPS, S, SPOT, STRIDE, herAt, walkedAt } from './script';
 
 const asset = (p: string) => publicUrl(`assets/${p}`);
-const v = (p: [number, number, number]) => new THREE.Vector3(...p);
 
 export function Scene() {
   const set = useMemo(() => buildFlatsStreet(), []);
@@ -102,10 +101,6 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
       inA(buildChair(), 3.4, -2.2, FY, -2.2),
       inA(buildSocket(), 3.84, -0.9, FY + 0.35, -Math.PI / 2),
     );
-    // cup, left on the sill later
-    const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 0.09, 16), new THREE.MeshStandardMaterial({ color: '#e9e2d0', roughness: 0.4 }));
-    cup.castShadow = true;
-    const sill = v(A(2.3, FY + 0.95 + 0.045, -0.4));
     // ceiling bulb under a paper shade
     const bulbA = new THREE.Mesh(new THREE.SphereGeometry(0.07, 16, 10), new THREE.MeshBasicMaterial({ color: '#fff', toneMapped: false }));
     bulbA.position.set(...A(2.0, level(ROOM.f + 1) - 0.65, -2.4));
@@ -154,7 +149,7 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     const spill = new THREE.PointLight('#ffb070', 1.6, 4, 1.5);
     spill.position.set(...A(1.6, FY + 1.9, 0.9));
     g.add(ceil, lampLightA, lampLightB, spill, ...stairs);
-    return { g, lampA, lampB, clock, cup, sill, bulbA, ceil, lampLightA, lampLightB };
+    return { g, lampA, lampB, clock, bulbA, ceil, lampLightA, lampLightB };
   }, [set, clockModel]);
 
   // the switch she taps: a generous invisible target over the plate
@@ -182,22 +177,14 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     <>
       <primitive object={f.g} />
       <primitive object={hit} />
-      <Cup cup={f.cup} sill={f.sill} />
     </>
   );
 }
 
-/** Shared between her and the cup: her right hand's world position. */
-const hand = new THREE.Vector3();
-
-function Cup({ cup, sill }: { cup: THREE.Mesh; sill: THREE.Vector3 }) {
-  useStoryFrame(({ t }) => {
-    const s = S.at(t);
-    cup.position.copy(hand).add(new THREE.Vector3(0, -0.02, 0)).lerp(sill, smoothstep(0.75, 1, s.cup));
-    cup.visible = t < 66;
-  }, 1);
-  return <primitive object={cup} />;
-}
+/** Her cup: in her right hand, then on the sill. She moves it (see Her). */
+const CUP = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 0.09, 16), new THREE.MeshStandardMaterial({ color: '#e9e2d0', roughness: 0.4 }));
+CUP.castShadow = true;
+const CUP_SILL = new THREE.Vector3(...A(1.5, FY + 0.95 + 0.045, -0.19));
 
 const RB_BONES = {
   Head: 'Bip01_Head', neck_01: 'Bip01_Neck', pelvis: 'Bip01_Pelvis',
@@ -206,8 +193,28 @@ const RB_BONES = {
 };
 const HER = {
   parts: [asset('characters/neighbour.glb')], boneMap: RB_BONES,
-  animations: ['cup', 'drink', 'look', 'nervous', 'door', 'think', 'walk', 'idle'].map((c) => asset(`animations/rb-neighbour-${c}.glb`)),
+  animations: [...['cup', 'drink', 'look', 'nervous', 'door', 'think', 'walk', 'idle'].map((c) => asset(`animations/rb-neighbour-${c}.glb`)), asset('animations/rb-her-walk.glb')],
 };
+
+const STRIDE_SAMPLES = [-0.28, -0.14, 0, 0.14, 0.28];
+
+/** Puts each foot on the ground under it (steps, kerbs), lowering her hips when a foot must reach down. */
+function plantFeet(her: ReturnType<typeof useCharacter>, near: number) {
+  const legs = (['L', 'R'] as const).map((s) => {
+    const foot = her.bone(`Bip01_${s}_Foot`), at = foot.getWorldPosition(new THREE.Vector3());
+    return { s, foot, at, lift: groundAt(at.x, at.z, near) - her.root.position.y };
+  });
+  const drop = Math.min(0, ...legs.map((l) => l.lift));
+  if (Math.max(...legs.map((l) => Math.abs(l.lift))) < 0.01) return;
+  her.root.position.y += drop;
+  her.root.updateMatrixWorld(true);
+  const fwd = new THREE.Vector3(Math.sin(her.root.rotation.y), 0, Math.cos(her.root.rotation.y));
+  for (const l of legs) {
+    const thigh = her.bone(`Bip01_${l.s}_Thigh`), calf = her.bone(`Bip01_${l.s}_Calf`);
+    const knee = calf.getWorldPosition(new THREE.Vector3()).addScaledVector(fwd, 0.5);
+    solveTwoBone(thigh, calf, l.foot, l.at.clone().setY(l.at.y + l.lift), knee, 1);
+  }
+}
 
 function Her({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
   const her = useCharacter(HER);
@@ -215,13 +222,20 @@ function Her({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
   const sw = useMemo(() => set.a.group.localToWorld(set.a.switchAt.clone()), [set]);
   useStoryFrame(({ t, idle }) => {
     const s = S.at(t);
-    her.pose(HER_CLIPS.sample(t, idle));
+    // walking clips run on the distance she covers, so her feet never slide
+    const clips = HER_CLIPS.sample(t, idle).map((c) => (STRIDE[c.clip] ? { ...c, time: walkedAt(t) / STRIDE[c.clip] } : c));
+    her.pose(clips);
     her.root.getObjectByName('Bip01')!.position.z = 0;
     const { p, face } = herAt(t);
-    her.root.position.set(...p);
+    // stand on the ground under her, smoothed over a stride so she rises evenly up stairs
+    const fx = Math.sin(face), fz = Math.cos(face);
+    let gy = 0;
+    for (const d of STRIDE_SAMPLES) gy += groundAt(p[0] + fx * d, p[2] + fz * d, p[1]);
+    her.root.position.set(p[0], gy / STRIDE_SAMPLES.length, p[2]);
     her.root.rotation.set(0, face, 0);
     her.root.visible = !(t > 67.8 && t < 69.95);
     her.root.updateMatrixWorld(true);
+    plantFeet(her, p[1]);
     // eyes on the other window while she stands at hers, then on what she's doing
     let look: THREE.Vector3 | null = null;
     if (t < 44 || (t > 55.5 && t < 66.2)) look = tmp.a.set(...B(1.9, FY + 1.0, -0.4));
@@ -232,19 +246,21 @@ function Her({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
       lookAt(her.bone('neck_01'), her.root, look, 0.5, 0.6);
       lookAt(her.bone('Head'), her.root, look, 0.7, 0.8);
     }
-    // the cup to the sill, the hand to the switch
+    // the cup sits in her palm, between wrist and fingers; it goes to the sill and her hand comes back
+    const palm = () => her.bone('hand_r').getWorldPosition(new THREE.Vector3()).lerp(her.bone('Bip01_R_Finger2').getWorldPosition(new THREE.Vector3()), 0.6);
     if (s.cup > 0 && s.cup < 1) {
       const sh = her.bone('upperarm_r').getWorldPosition(tmp.b);
-      const target = new THREE.Vector3(...A(2.2, FY + 1.06, -0.45));
-      const pole = sh.clone().add(new THREE.Vector3(0.4, -0.5, -0.3));
-      solveTwoBone(her.bone('upperarm_r'), her.bone('lowerarm_r'), her.bone('hand_r'), target, pole, Math.sin(s.cup * Math.PI));
+      const target = CUP_SILL.clone().setY(CUP_SILL.y + 0.03).sub(palm().sub(her.bone('hand_r').getWorldPosition(new THREE.Vector3())));
+      const pole = sh.clone().add(new THREE.Vector3(-0.3, -0.6, -0.2));
+      solveTwoBone(her.bone('upperarm_r'), her.bone('lowerarm_r'), her.bone('hand_r'), target, pole, smoothstep(0, 1, 1 - Math.abs(s.cup * 2 - 1)));
     }
     if (s.reach > 0) {
       const sh = her.bone('upperarm_r').getWorldPosition(tmp.b);
       const pole = sh.clone().add(new THREE.Vector3(0.1, -0.6, 0.4));
       solveTwoBone(her.bone('upperarm_r'), her.bone('lowerarm_r'), her.bone('hand_r'), sw.clone().add(new THREE.Vector3(0.06, 0, 0)), pole, s.reach);
     }
-    hand.copy(her.bone('hand_r').getWorldPosition(tmp.b));
+    if (s.cup >= 0.5) CUP.position.copy(CUP_SILL);
+    else { CUP.position.copy(palm()).y -= 0.03; CUP.position.lerp(CUP_SILL, smoothstep(0.3, 0.5, s.cup)); }
   });
-  return <primitive object={her.root} />;
+  return <><primitive object={her.root} /><primitive object={CUP} /></>;
 }

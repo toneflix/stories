@@ -8,6 +8,7 @@ import { buildGenerator, buildStreet, FRONT, LENGTH } from './street';
 export * from './block';
 export * from './street';
 export * from './props';
+export * from './ground';
 
 // A night street of walk-up flats: two blocks face each other across the road, flanked
 // by older buildings. Block A is on the south side (z < 0), its front facing +z; block B

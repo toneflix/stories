@@ -21,6 +21,8 @@ const DOOR = { w: 1.2, h: 2.3 };
 
 /** The stairwell, behind bay -1.75: up-back flight on the left, up-front flight on the right. */
 export const STAIR = { x0: -3.5, x1: 0, z0: -5, z1: -WALL, front: -1.4, back: -3.92, split: -1.75 };
+/** Steps in each half-flight. */
+export const STAIR_STEPS = 9;
 /** The flat behind bay 1.75 on the second floor, and its door from the landing. */
 export const ROOM = { x0: 0, x1: 4, z0: -4.75, z1: -WALL, f: 2, door: { z0: -1.3, z1: -0.4, h: 2.1 } };
 
@@ -149,7 +151,7 @@ export function buildBlock(o: BlockOptions): Block {
   glass.renderOrder = 3;
 
   // ---------------------------------------------------------------- stairwell
-  const S = STAIR, steps = 9, rise = STOREY / 2 / steps, run = (S.front - S.back) / steps;
+  const S = STAIR, steps = STAIR_STEPS, rise = STOREY / 2 / steps, run = (S.front - S.back) / steps;
   kit.span('plaster', '#8f8a7e', S.x0, 0, S.z0, S.x0 + 0.15, ROOF - 0.25, S.z1);
   kit.span('plaster', '#8f8a7e', S.x0, 0, S.z0, S.x1, ROOF - 0.25, S.z0 + 0.15);
   // right-hand wall, shared with the room; on the room's storey it has the doorway
