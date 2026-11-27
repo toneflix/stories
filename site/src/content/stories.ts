@@ -29,7 +29,8 @@ export type UpcomingStory = Base & { status: 'coming-soon' };
 
 export type Story = ReleasedStory | UpcomingStory;
 
-const liveBase = process.env.NEXT_PUBLIC_LIVE_BASE_URL ?? 'https://toneflix.github.io/stories';
+// The live player is built into public/play (scripts/build-player.mjs).
+const liveBase = process.env.NEXT_PUBLIC_LIVE_BASE_URL ?? '/play';
 const source = (id: string) => `${repoUrl}/tree/main/src/stories/${id}`;
 
 const released: ReleasedStory[] = [
@@ -44,7 +45,7 @@ const released: ReleasedStory[] = [
     video: '/media/lantern-keeper/video.mp4',
     poster: '/media/lantern-keeper/poster.jpg',
     stills: [1, 2, 3, 4].map((n) => `/media/lantern-keeper/still-${n}.jpg`),
-    liveUrl: `${liveBase}/stories/lantern-keeper/`,
+    liveUrl: `${liveBase}/stories/lantern-keeper/index.html`,
     sourceUrl: source('lantern-keeper'),
     seconds: 45,
     published: '2026-11-26',

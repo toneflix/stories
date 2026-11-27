@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/migrate.mjs && next build",
+    "build": "node scripts/build-player.mjs && node scripts/migrate.mjs && next build",
+    "build:player": "node scripts/build-player.mjs",
     "start": "next start",
     "lint": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
