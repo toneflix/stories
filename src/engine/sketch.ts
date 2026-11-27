@@ -29,6 +29,10 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   float L = lum(c), Lb = floor(L * uBands + 0.5) / uBands;
   c *= mix(1., Lb / max(L, 1e-3), 0.35);
   c = mix(vec3(lum(c)), c, uSat);
+  // grade: a touch darker overall, highlights rolled off so skies and pale walls don't glare
+  c *= 0.86;
+  c = c / (1. + 0.35 * c) * 1.2;
+  c = pow(c, vec3(1.08));
   // paper grain
   float n = fract(sin(dot(floor(uv / texelSize), vec2(12.9898, 78.233))) * 43758.5453);
   c *= 0.985 + n * 0.03;
