@@ -120,7 +120,17 @@ export default function Home() {
       <section id="code" className="wrap how">
         <div className="section-head">
           <h2>Made entirely in code</h2>
-          <p className="muted">No cameras and no animation software. Each story is a program, and the film is what it looks like when it runs.</p>
+          <p className="muted">
+            There are no cameras, film sets or animation software behind these stories. Each one is a small program.
+            The hills, the sky, the light and the way every character moves are written out as instructions, and the
+            film is simply what those instructions look like when a computer runs them.
+          </p>
+          <p className="muted">
+            It works a lot like a video game. A game doesn&apos;t play back a recording. Your computer draws every frame
+            as you go, from a world the developers built. These stories are made the same way, except the camera
+            follows a script instead of a controller, so the story plays out like a film. And because it&apos;s built
+            like a game, you can open the live link and step inside it.
+          </p>
         </div>
         <ol className="code-steps">
           <li className="card">

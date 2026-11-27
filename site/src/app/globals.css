@@ -513,7 +513,7 @@ input {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-width: 640px;
+  max-width: 720px;
 }
 
 .section-head p {
