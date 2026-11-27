@@ -18,6 +18,7 @@ Everything here is free to use commercially. The prepared files live in `public/
 | "Old Residential Building [4k]" | [andrej.grave](https://sketchfab.com/3d-models/dd400ed693cf416e940c5b8e3107205e) | CC BY 4.0 | Route 7 street, The Other Lamp street (`props/old-residential.glb`) |
 | "Modular Slums" | [lexferreira89](https://sketchfab.com/3d-models/e2b6f532e1fe4f7280890971d78183f4) | CC BY 4.0 | Route 7 street (`props/modular-slums.glb`) |
 | "Slum house" | [designbureau](https://sketchfab.com/3d-models/e902e0af80804d01924387da6af8eecf) | CC BY 4.0 | Route 7 street, The Other Lamp street (`props/slum-house.glb`) |
+| "Basic Clock Rigged" | [Blender3D](https://sketchfab.com/3d-models/edc8c38a80f5419092f72e8febf3598b) | CC BY 4.0 | The Other Lamp wall clock (`props/wall-clock.glb`) |
 
 Made in code (no external asset): terrain, trees, village, lanterns, sky, fireflies; Route 7's flood, palms, poles and bus stops; all music and sound effects.
 

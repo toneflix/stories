@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import { useStoryFrame, useHitTarget } from '../../engine/clock';
 import { useCharacter, lookAt } from '../../engine/character';
 import { solveTwoBone } from '../../engine/ik';
@@ -9,7 +10,7 @@ import { publicUrl } from '../../engine/types';
 import { MOBILE } from '../../engine/Player';
 import { smoothstep } from '../../engine/timeline';
 import {
-  buildFlatsStreet, Neighbours, NightSky, buildLamp, buildSideTable, buildSettee, buildChair, buildClock,
+  buildFlatsStreet, Neighbours, NightSky, buildLamp, buildSideTable, buildSettee, buildChair, fitWallClock,
   buildCurtains, buildSocket, buildRug, LIGHTS, LIGHT_Y, STAIR, level, ROOM,
 } from '../../sets/flats-street';
 import { A, B, CAMERA, FY, HER_CLIPS, S, SPOT, herAt } from './script';
@@ -81,6 +82,7 @@ function StreetLights() {
 
 /** Everything inside the two flats and their stairwells, and the lights in them. */
 function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
+  const clockModel = useGLTF(publicUrl('assets/props/wall-clock.glb')).scene;
   const f = useMemo(() => {
     const inA = (o: THREE.Object3D, x: number, z: number, y = FY, ry = 0) => { o.position.set(...A(x, y, z)); o.rotation.y = ry; return o; };
     const inB = (o: THREE.Object3D, x: number, z: number, y = FY, ry = 0) => { o.position.set(...B(x, y, z)); o.rotation.y = ry + Math.PI; return o; };
@@ -89,7 +91,7 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     // her flat: lived in
     const lampA = buildLamp([new THREE.Vector3(0.1, 0.01, -0.12), new THREE.Vector3(0.27, -0.02, -0.15), new THREE.Vector3(0.3, -0.75, -0.2), new THREE.Vector3(1.2, -0.76, -0.4), new THREE.Vector3(1.5, -0.55, -0.45)], new THREE.Vector3(1.52, -0.415, -0.45));
     const tableA = buildSideTable('#5b4330', 0.75);
-    const clock = buildClock();
+    const clock = fitWallClock(clockModel);
     g.add(
       inA(tableA, SPOT.lampA[0], SPOT.lampA[1]),
       inA(lampA.group, SPOT.lampA[0], SPOT.lampA[1], FY + 0.765),
@@ -153,7 +155,7 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     spill.position.set(...A(1.6, FY + 1.9, 0.9));
     g.add(ceil, lampLightA, lampLightB, spill, ...stairs);
     return { g, lampA, lampB, clock, cup, sill, bulbA, ceil, lampLightA, lampLightB };
-  }, [set]);
+  }, [set, clockModel]);
 
   // the switch she taps: a generous invisible target over the plate
   const hit = useMemo(() => {
@@ -170,7 +172,8 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     f.lampLightB.intensity = s.lampB * 6;
     f.ceil.intensity = s.ceiling * 14;
     (f.bulbA.material as THREE.MeshBasicMaterial).color.set('#4a4036').lerp(new THREE.Color('#fff2d8').multiplyScalar(4), s.ceiling);
-    f.clock.set(21, s.minute);
+    // the second hand reaches 12 as the minute turns
+    f.clock.set(21, s.minute, Math.floor(t + 37.5) % 60);
     set.b.roomDoor.rotation.y = -s.roomDoor;
     set.a.entranceDoor.rotation.y = s.gate * 1.4;
     set.b.entranceDoor.rotation.y = s.gateB * 1.4;

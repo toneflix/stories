@@ -69,25 +69,70 @@ export function buildChair(sheet = false) {
   return kit.build();
 }
 
-/** A round wall clock with hands set by `set(hours, minutes)`; it faces +z. */
-export function buildClock() {
+/**
+ * The round wall clock ("Basic Clock Rigged" by Blender3D, CC BY 4.0), `d` across, facing +z.
+ * Pass the loaded glTF scene. Its own hands sit behind the dial, so it gets new ones, set
+ * by `set(hours, minutes, seconds)`.
+ */
+export function fitWallClock(src: THREE.Object3D, d = 0.3) {
+  // bake the skinned model into a still mesh without its glass and hands (model x is out of the dial)
+  src.updateMatrixWorld(true);
+  const parts: THREE.Mesh[] = [];
+  src.traverse((o) => {
+    const m = o as THREE.SkinnedMesh;
+    if (!m.isSkinnedMesh) return;
+    const g = m.geometry.clone();
+    g.deleteAttribute('skinIndex'); g.deleteAttribute('skinWeight');
+    const n = g.attributes.position.count, p = new THREE.BufferAttribute(new Float32Array(n * 3), 3), v = new THREE.Vector3(), drop = new Set<number>();
+    g.setAttribute('position', p); g.deleteAttribute('normal');
+    const sw = m.geometry.attributes.skinWeight, si = m.geometry.attributes.skinIndex;
+    for (let i = 0; i < n; i++) {
+      m.getVertexPosition(i, v).applyMatrix4(m.matrixWorld);
+      p.setXYZ(i, v.x, v.y, v.z);
+      let best = 0, w = 0;
+      for (let j = 0; j < 4; j++) if (sw.getComponent(i, j) > w) { w = sw.getComponent(i, j); best = si.getComponent(i, j); }
+      if (v.x > 18 || /hand/.test(m.skeleton.bones[best].name)) drop.add(i);
+    }
+    const idx = g.index!, keep: number[] = [];
+    for (let t = 0; t < idx.count; t += 3) {
+      const tri = [idx.getX(t), idx.getX(t + 1), idx.getX(t + 2)];
+      if (!tri.every((i) => drop.has(i))) keep.push(...tri);
+    }
+    g.setIndex(keep);
+    g.computeVertexNormals();
+    g.rotateY(-Math.PI / 2);
+    parts.push(new THREE.Mesh(g, m.material));
+  });
   const g = new THREE.Group();
-  const kit = new Kit({ rim: plain(0.4, 0.3), face: plain(0.6) });
-  kit.add('rim', new THREE.TorusGeometry(0.15, 0.015, 8, 32), '#1c1c1c');
-  kit.add('face', new THREE.CylinderGeometry(0.15, 0.15, 0.01, 32).rotateX(Math.PI / 2), '#efe9da');
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2;
-    kit.box('rim', '#1c1c1c', i % 3 ? 0.006 : 0.012, 0.025, 0.004, Math.sin(a) * 0.125, Math.cos(a) * 0.125, 0.008, 0);
-  }
-  g.add(kit.build(false));
-  const hand = (len: number, w: number) => {
+  const body = new THREE.Group();
+  body.add(...parts);
+  const box = new THREE.Box3().setFromObject(body), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  const k = d / size.y;
+  body.scale.setScalar(k);
+  body.position.set(-c.x * k, -c.y * k, -box.min.z * k);
+  body.traverse((o) => { o.castShadow = true; });
+  g.add(body);
+  // the dial is 3 model units behind the front of the rim
+  const dial = (box.max.z - box.min.z - 3) * k;
+  const ink = new THREE.MeshStandardMaterial({ color: '#141414', roughness: 0.5 });
+  const hand = (len: number, w: number, z: number, mat = ink) => {
     const p = new THREE.Group();
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, len, 0.004).translate(0, len / 2 - 0.015, 0), new THREE.MeshStandardMaterial({ color: '#141414' }));
-    m.position.z = 0.012; p.add(m); g.add(p);
+    p.position.z = dial + z;
+    p.add(new THREE.Mesh(new THREE.BoxGeometry(w, len, 0.002).translate(0, len / 2 - len * 0.15, 0), mat));
+    g.add(p);
     return p;
   };
-  const hr = hand(0.08, 0.012), mn = hand(0.115, 0.008);
-  return { group: g, set(h: number, m: number) { mn.rotation.z = -(m / 60) * Math.PI * 2; hr.rotation.z = -((h % 12) / 12 + m / 720) * Math.PI * 2; } };
+  const r = d / 2;
+  const hr = hand(r * 0.55, 0.009, 0.003), mn = hand(r * 0.8, 0.006, 0.005);
+  const sc = hand(r * 0.85, 0.002, 0.007, new THREE.MeshStandardMaterial({ color: '#a01d16', roughness: 0.5 }));
+  return {
+    group: g,
+    set(h: number, m: number, s = 0) {
+      mn.rotation.z = -(m / 60) * Math.PI * 2;
+      hr.rotation.z = -((h % 12) / 12 + m / 720) * Math.PI * 2;
+      sc.rotation.z = -(s / 60) * Math.PI * 2;
+    },
+  };
 }
 
 /** Curtains either side of a window w wide, hung from a rod at height h (local x across, facing +z). */

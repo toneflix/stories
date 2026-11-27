@@ -45,6 +45,7 @@ raw "$OBJ/000-061/a08d416576c64bec96b10fd889d6d274.glb" .sources/props/vw-t3.glb
 raw "$OBJ/000-075/dd400ed693cf416e940c5b8e3107205e.glb" .sources/props/old-residential.glb
 raw "$OBJ/000-056/e2b6f532e1fe4f7280890971d78183f4.glb" .sources/props/modular-slums.glb
 raw "$OBJ/000-008/e902e0af80804d01924387da6af8eecf.glb" .sources/props/slum-house.glb
+raw "$OBJ/000-131/edc8c38a80f5419092f72e8febf3598b.glb" .sources/props/wall-clock.glb
 # "African Makehuman Character with PBR Textures" by mertbbicak (CC BY 4.0), rigged by tools/skin-transfer.mjs
 mkdir -p .sources/people
 raw "$OBJ/000-079/1a88f2e4a0724c639e81e6fe92587b9c.glb" .sources/people/makehuman-african-woman.glb

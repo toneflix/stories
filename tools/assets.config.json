@@ -86,6 +86,12 @@
       "drop": "^Ground",
       "simplify": 0.3,
       "simplifyError": 0.01
+    },
+    {
+      "src": "../.sources/props/wall-clock.glb",
+      "out": "../public/assets/props/wall-clock.glb",
+      "textureSize": 512,
+      "keepParts": true
     }
   ]
 }
