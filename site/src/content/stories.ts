@@ -1,4 +1,5 @@
 import { repoUrl } from '@/lib/site';
+import manifest from '../../../stories.json';
 
 export type ThemeId = 'post-apocalyptic' | 'folklore' | 'city' | 'sci-fi' | 'mystery';
 
@@ -14,6 +15,7 @@ type Base = { slug: string; title: string; theme: ThemeId };
 
 export type ReleasedStory = Base & {
   status: 'released';
+  id: string;
   narrated: boolean;
   caption: string;
   video: string;
@@ -33,8 +35,10 @@ export type Story = ReleasedStory | UpcomingStory;
 const liveBase = process.env.NEXT_PUBLIC_LIVE_BASE_URL ?? '/play';
 const source = (id: string) => `${repoUrl}/tree/main/src/stories/${id}`;
 
-const released: ReleasedStory[] = [
+// A story stays coming soon until its id is in `released` in stories.json at the repo root.
+const ready: ReleasedStory[] = [
   {
+    id: 'lantern-keeper',
     slug: 'the-lantern-keeper',
     title: 'The Lantern Keeper (Demo)',
     theme: 'folklore',
@@ -51,6 +55,7 @@ const released: ReleasedStory[] = [
     published: '2026-11-26',
   },
   {
+    id: 'route-7',
     slug: 'route-7-still-running',
     title: 'Route 7, Still Running',
     theme: 'post-apocalyptic',
@@ -67,6 +72,12 @@ const released: ReleasedStory[] = [
     published: '2026-11-27',
   },
 ];
+
+export const isReleased = (id: string) => manifest.released.includes(id);
+const released = ready.filter((s) => isReleased(s.id));
+// Only early-access accounts see these (lib/access.ts).
+export const previewStories = ready.filter((s) => !isReleased(s.id));
+const unreleased = previewStories.map(({ slug, title, theme }): UpcomingStory => ({ slug, title, theme, status: 'coming-soon' }));
 
 const upcoming: Record<ThemeId, string[]> = {
   'post-apocalyptic': [
@@ -126,6 +137,7 @@ const slugify = (title: string) =>
 
 export const stories: Story[] = [
   ...released,
+  ...unreleased,
   ...themes.flatMap(({ id }) =>
     upcoming[id].map((title): UpcomingStory => ({ slug: slugify(title), title, theme: id, status: 'coming-soon' })),
   ),

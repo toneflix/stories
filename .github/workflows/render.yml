@@ -1,8 +1,8 @@
 # Renders story videos. Each film is split into parts that render at the same time on separate
 # runners, then joined with the soundtrack.
 #   Run by hand: Actions → Render stories → Run workflow, for one story.
-#   On a published release: every story, or only the one whose id ends the tag (1.0.0-route-7),
-#   and the new videos are committed to site/public/media/<id>/.
+#   On a published release: every released story (stories.json), or only the one whose id ends
+#   the tag (1.0.0-route-7), and the new videos are committed to site/public/media/<id>/.
 name: Render stories
 on:
   release:
@@ -42,12 +42,17 @@ jobs:
           STORY: ${{ inputs.story }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          all=$(ls src/stories)
           if [ -n "$TAG" ]; then
+            # releases publish videos, so only stories listed in stories.json
+            all=$(jq -r '.released[]' stories.json)
             stories=""
-            for s in $all; do
+            for s in $(ls src/stories); do
               if [ "$TAG" = "$s" ] || [ "${TAG%-"$s"}" != "$TAG" ]; then stories=$s; fi
             done
+            if [ -n "$stories" ] && ! printf '%s\n' $all | grep -qx "$stories"; then
+              echo "::error::$stories is not released yet. Add it to stories.json first."
+              exit 1
+            fi
             stories=${stories:-$all}
           else
             stories=$STORY
