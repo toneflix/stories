@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "narrate": "python3 tools/narrate.py",
     "export": "node tools/export.mjs",
+    "stitch": "node tools/stitch.mjs",
     "typecheck": "tsc -p .",
     "assets": "node tools/prepare-assets.mjs tools/assets.config.json"
   },

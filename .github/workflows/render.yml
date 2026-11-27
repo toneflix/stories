@@ -1,0 +1,80 @@
+# Renders a story's 9:16 video. The film is split into parts that render at the same time on
+# separate runners, then joined with the soundtrack. Actions → Render a story → Run workflow.
+name: Render a story
+on:
+  workflow_dispatch:
+    inputs:
+      story:
+        description: Story
+        type: choice
+        options: [lantern-keeper, route-7]
+        default: lantern-keeper
+      size:
+        description: Size
+        type: choice
+        options: ['720x1280', '1080x1920']
+        default: '720x1280'
+      parts:
+        description: Runners to share the work (1 to 20)
+        type: number
+        default: 16
+      look:
+        description: Look (empty for the story's own)
+        type: string
+        default: ''
+permissions:
+  contents: read
+env:
+  STORY: ${{ inputs.story || 'lantern-keeper' }}
+  SIZE: ${{ inputs.size || '720x1280' }}
+  LOOK: ${{ inputs.look }}
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      parts: ${{ steps.plan.outputs.parts }}
+      count: ${{ steps.plan.outputs.count }}
+    steps:
+      - id: plan
+        env: { PARTS: '${{ inputs.parts || 16 }}' }
+        run: |
+          n=$(( PARTS < 1 ? 1 : PARTS > 20 ? 20 : PARTS ))
+          echo "count=$n" >> "$GITHUB_OUTPUT"
+          echo "parts=[$(seq -s, 0 $((n - 1)))]" >> "$GITHUB_OUTPUT"
+
+  render:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    strategy:
+      matrix:
+        part: ${{ fromJSON(needs.plan.outputs.parts) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      - run: npx playwright install --with-deps --only-shell chromium
+      - name: Render part ${{ matrix.part }}
+        run: node tools/export.mjs "$STORY" --size "$SIZE" --chunk "${{ matrix.part }}/${{ needs.plan.outputs.count }}" ${LOOK:+--look "$LOOK"} --out "parts/part-$(printf %03d ${{ matrix.part }}).mp4"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: part-${{ matrix.part }}
+          path: parts/
+          retention-days: 1
+
+  stitch:
+    needs: render
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      - uses: actions/download-artifact@v8
+        with: { pattern: 'part-*', path: parts, merge-multiple: true }
+      - run: node tools/stitch.mjs "$STORY" --parts parts --out "out/$STORY-$SIZE.mp4"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.STORY }}-${{ env.SIZE }}
+          path: out/
+      - run: echo "Rendered **$STORY** at $SIZE. Download it from the artifacts below." >> "$GITHUB_STEP_SUMMARY"
