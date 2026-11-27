@@ -127,6 +127,8 @@ export function shelterPoint(i: number, out: number, along: number, up: number):
 /** The realistic look's bus is lower: its cabin sits this much further down. */
 const LOW = REAL ? 0.42 : 0;
 /** ...and its doorway sits further back, so shots through it move back too. */
+/** ...and the over-the-shoulder shot stands wider of her, so her hair isn't the foreground. */
+const SHOULDER = REAL ? -0.4 : 0;
 const DOOR_BACK = REAL ? 0.55 : 0, DOOR_OUT = REAL ? 0.1 : 0, DOOR_WIDEN = REAL ? 10 : 0;
 const driverFace = (t: number) => busPoint(t, 0.45, 1.27 - LOW, 1.35);
 
@@ -156,11 +158,17 @@ export const CAMERA: CameraKey[] = [
   { t: 53.5, pos: shelterPoint(2, 0.35, -2.8, 1.2), look: busPoint(53.5, 0.2, 1.1, 0.6), fov: 44 },
   { t: 56.4, pos: shelterPoint(2, 0.3, -2.9, 1.2), look: busPoint(56.4, 0.2, 1.1, 0.6), fov: 44 },
   // over her shoulder as the bus pulls away, stops and backs up
-  { t: 56.5, pos: shelterPoint(2, 0.6, -1.3, 2.0), look: shelterPoint(2, -2.2, 5, 1.3), fov: 50, cut: true },
-  { t: 58.5, pos: shelterPoint(2, 0.6, -1.2, 2.0), look: shelterPoint(2, -2.2, 6, 1.35), fov: 48, hold: true },
-  { t: 62.5, pos: shelterPoint(2, 0.6, -1.2, 2.0), look: shelterPoint(2, -2.2, 6, 1.3), fov: 48 },
-  { t: 66, pos: shelterPoint(2, 0.7, -2.0, 1.9), look: shelterPoint(2, -1.0, 0.6, 1.1), fov: 50 },
-  { t: 69.4, pos: shelterPoint(2, 0.7, -2.2, 1.85), look: shelterPoint(2, -1.4, 0.6, 1.0), fov: 50 },
+  { t: 56.5, pos: shelterPoint(2, 0.6 + SHOULDER, -1.3, 2.0), look: shelterPoint(2, -2.2, 5, 1.3), fov: 50, cut: true },
+  { t: 58.5, pos: shelterPoint(2, 0.6 + SHOULDER, -1.2, 2.0), look: shelterPoint(2, -2.2, 6, 1.35), fov: 48, hold: true },
+  { t: 62.5, pos: shelterPoint(2, 0.6 + SHOULDER, -1.2, 2.0), look: shelterPoint(2, -2.2, 6, 1.3), fov: 48 },
+  ...(REAL ? [
+    // low, from the shelter: she steps across and ducks in through the T3's low doorway
+    { t: 65.9, pos: shelterPoint(2, 0.45, -1.35, 1.3), look: shelterPoint(2, -1.5, -0.1, 0.95), fov: 56, cut: true },
+    { t: 69.4, pos: shelterPoint(2, 0.45, -1.3, 1.28), look: shelterPoint(2, -1.6, 0.0, 0.9), fov: 54 },
+  ] : [
+    { t: 66, pos: shelterPoint(2, 0.7, -2.0, 1.9), look: shelterPoint(2, -1.0, 0.6, 1.1), fov: 50 },
+    { t: 69.4, pos: shelterPoint(2, 0.7, -2.2, 1.85), look: shelterPoint(2, -1.4, 0.6, 1.0), fov: 50 },
+  ]),
   // through the open door: the conversation and the fare
   { t: 69.5, pos: busPoint(69.5, -1.8 - DOOR_OUT, 1.2 - LOW, 0.7 - DOOR_BACK), look: busPoint(69.5, 0.4, 1.12 - LOW, 0.85), fov: 46 + DOOR_WIDEN, cut: true },
   { t: 79, pos: busPoint(79, -1.7 - DOOR_OUT, 1.2 - LOW, 0.75 - DOOR_BACK), look: busPoint(79, 0.4, 1.1 - LOW, 0.9), fov: 43 + DOOR_WIDEN },

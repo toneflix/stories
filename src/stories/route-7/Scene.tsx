@@ -15,7 +15,7 @@ import { BUS, ROUTE_LENGTH, routePose, shelterPose, glowTexture } from './world'
 import { buildCity, buildPalms, buildPoles, buildShelter, SHELTERS } from './city';
 import { buildBus, type BusModel } from './bus';
 import { REAL } from '../../engine/look';
-import { RealAtmosphere, RealWater, Skyline, RealStreet, RealBusBody, weather, polishBus, doorPanels } from './real';
+import { RealAtmosphere, RealWater, Skyline, RealStreet, RealBusBody, weather, polishBus, doorPanels, T3_DOOR, T3_FLOOR } from './real';
 
 const asset = (p: string) => publicUrl(`assets/${p}`);
 
@@ -200,7 +200,7 @@ function City() {
 }
 
 function Shelter({ i }: { i: number }) {
-  const g = useMemo(() => buildShelter(i), [i]);
+  const g = useMemo(() => { const s = buildShelter(i); if (REAL) weather(s); return s; }, [i]);
   return <primitive object={g} />;
 }
 
@@ -486,6 +486,11 @@ function Passenger({ model }: { model: BusModel }) {
   });
   const setup = useMemo(() => {
     const seatHip = pelvisOffset(her, 'Sitting_Idle_Loop');
+    // her hair cards are a shade lighter than her skin reads in the evening light
+    if (REAL) her.root.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+      if (m && m.alphaTest > 0) m.color.multiplyScalar(0.85);
+    });
     const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.008, 18), new THREE.MeshToonMaterial({ color: '#e8b84a', emissive: '#5a3a08' }));
     coin.rotation.x = Math.PI / 2;
     const hit = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 2.2, 8), new THREE.MeshBasicMaterial({ visible: false }));
@@ -506,8 +511,9 @@ function Passenger({ model }: { model: BusModel }) {
       const face = sh.right.clone().multiplyScalar(-1);
       const at = (out: number, along: number, y: number) => sh.pos.clone().addScaledVector(sh.right, out).addScaledVector(sh.forward, along).setY(y);
       const stand = at(0.05, 0.2, BENCH_TOP);
-      const door = tmp.a.set(-BUS.width / 2 + 0.25, BUS.floor, (BUS.door.z0 + BUS.door.z1) / 2).applyMatrix4(model.group.matrixWorld);
-      const inside = tmp.b.set(0, BUS.floor, (BUS.door.z0 + BUS.door.z1) / 2 + 0.1).applyMatrix4(model.group.matrixWorld);
+      const dz = REAL ? (T3_DOOR.z0 + T3_DOOR.z1) / 2 : (BUS.door.z0 + BUS.door.z1) / 2, floor = REAL ? T3_FLOOR : BUS.floor;
+      const door = tmp.a.set(-BUS.width / 2 + 0.25, floor, dz).applyMatrix4(model.group.matrixWorld);
+      const inside = tmp.b.set(0, floor, dz + 0.1).applyMatrix4(model.group.matrixWorld);
       const k = s.step, a = s.arrive;
       let p: THREE.Vector3;
       if (k > 0) {
@@ -521,6 +527,13 @@ function Passenger({ model }: { model: BusModel }) {
       const facing = lerp(walkIn, heading, smoothstep(0.7, 1, a));
       her.root.rotation.set(0, lerp(facing, heading + angleTo(face, busForward), smoothstep(0.55, 0.9, k)), 0);
       her.root.visible = t >= 56.4 && k < 0.98;
+      // the T3's doorway is lower than she is: she ducks through it
+      if (REAL && k > 0) {
+        const duck = Math.sin(clamp((k - 0.3) / 0.7) * Math.PI);
+        her.root.updateMatrixWorld(true);
+        for (const n of ['Bip01_Spine', 'Bip01_Spine1', 'Bip01_Spine2']) her.root.getObjectByName(n)!.rotateZ(-duck * 0.35);
+        her.root.position.y -= duck * 0.05;
+      }
       setup.hit.position.copy(stand).add(new THREE.Vector3(0, 1, 0));
     } else {
       // seated behind the driver, riding with the bus

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { toon, addOutline } from '../../engine/toon';
 import { rng } from '../../engine/random';
+import { REAL } from '../../engine/look';
 import { C, blocks, palmSpots, poleSpots, shelterPose, signTexture, STOPS } from './world';
 
 // Static set dressing, built once: buildings, palms, poles and wires, bus shelters.
@@ -161,10 +162,12 @@ export function buildShelter(i: number) {
   const s = shelterPose(i);
   const g = new THREE.Group();
   const parts: THREE.BufferGeometry[] = [];
-  const steel = '#41617a', bench = '#c98a3e';
+  // the realistic look wants weathered paint, a rusted roof and a sun-faded panel
+  const steel = REAL ? '#2f4656' : '#41617a', bench = REAL ? '#8a5a2b' : '#c98a3e';
+  const roof = REAL ? '#6e5a4a' : '#b9c2c6', wall = REAL ? '#8f8573' : '#efe6d2';
   for (const z of [-1.6, 1.6]) for (const x of [-0.2, 0.75]) parts.push(box(0.09, 3.2, 0.09, x, 0.9, z, steel));
-  parts.push(colored(new THREE.BoxGeometry(1.5, 0.08, 3.8).rotateZ(-0.12).translate(0.3, 2.55, 0), '#b9c2c6'));
-  parts.push(box(0.06, 1.7, 3.2, 0.78, 1.15, 0, '#efe6d2'));
+  parts.push(colored(new THREE.BoxGeometry(1.5, 0.08, 3.8).rotateZ(-0.12).translate(0.3, 2.55, 0), roof));
+  parts.push(box(0.06, 1.7, 3.2, 0.78, 1.15, 0, wall));
   parts.push(box(0.5, 0.08, 3.0, 0.05, 0.3, 0, bench), box(0.08, 0.5, 3.0, 0.3, 0.55, 0, bench));
   for (const z of [-1.3, 0, 1.3]) parts.push(box(0.4, 0.8, 0.07, 0.05, -0.1, z, steel));
   // stop sign on its pole, towards the oncoming bus

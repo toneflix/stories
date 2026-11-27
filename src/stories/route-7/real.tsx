@@ -48,7 +48,9 @@ export function RealAtmosphere() {
 
   useStoryFrame(({ t }) => {
     const { day } = B.at(t);
+    // keep the evening sun a hand above the rooftops: golden hour, not night
     const dir = state.d.fromArray(SUN_DIR.sample(day)).normalize();
+    dir.y = Math.max(dir.y, 0.16); dir.normalize();
     for (const s of [sky, envScene.children[0] as Sky]) s.material.uniforms.sunPosition.value.copy(dir);
     // rebuild the image-based light only when the light has moved enough to show
     if (Math.abs(day - state.day) > 0.04) {
@@ -61,7 +63,8 @@ export function RealAtmosphere() {
     const lowSun = 1 - smoothstep(0.05, 0.6, dir.y);
     sun.current!.color.copy(col(SKY.sun, day, state.c)).lerp(new THREE.Color('#fff4e6'), 1 - lowSun);
     sun.current!.intensity = 2.5 - lowSun * 0.9;
-    hemi.current!.intensity = 0.25;
+    hemi.current!.intensity = 0.25 + lowSun * 0.35;
+    scene.environmentIntensity = 1.5 + lowSun * 0.9;
     const p = routePose(BUS_S.sample(t)).pos;
     target.position.copy(p);
     sun.current!.position.copy(p).addScaledVector(dir, 80);
@@ -118,7 +121,7 @@ vec2 wakeSlope(vec2 p) {
   vec2 e = abs(l) - vec2(1.0, 2.4);
   float out_ = length(max(e, 0.0)) + min(max(e.x, e.y), 0.0);
   float bow = smoothstep(0.5, 2.4, l.y) * uHull.w;
-  wakeFoam += smoothstep(0.25 + bow * 0.12, 0.0, out_) * (0.35 + min(uHull.w, 4.0) * 0.18);
+  wakeFoam += smoothstep(0.25 + bow * 0.12, 0.0, out_) * (0.1 + min(uHull.w, 4.0) * 0.22);
   return g;
 }
 `;
@@ -259,7 +262,11 @@ const prop = (name: string) => publicUrl(`assets/props/${name}.glb`);
  * so the people inside still sit where the script puts them; the painted windows are made
  * see-through so you can see them.
  */
-const CABIN_DROP = 0.42;
+export const CABIN_DROP = 0.42;
+/** The T3's sliding doorway along bus-space z. */
+export const T3_DOOR = { z0: -0.3, z1: 0.72 };
+/** Height of the T3's cabin floor in bus space (the bus rides low, so the flood is in the cabin). */
+export const T3_FLOOR = BUS.floor - CABIN_DROP;
 /** The T3's sliding door, cut from its body, for the scene to slide open. */
 export const doorPanels = new WeakMap<BusModel, THREE.Group>();
 /** Where the T3's texture paints its windows (a grey-green): 1 on glass, 0 on bodywork. */
@@ -347,7 +354,7 @@ export function RealBusBody({ model }: { model: BusModel }) {
     body.updateMatrixWorld(true);
     const inv = new THREE.Matrix4().copy(model.group.matrixWorld).invert();
     // bus-space z from, z to, y from, y to: from behind the front door's pillar to the gutter
-    const doorRect = { value: new THREE.Vector4(-0.3, 0.72, 0.1, 1.66) };
+    const doorRect = { value: new THREE.Vector4(T3_DOOR.z0, T3_DOOR.z1, 0.1, 1.66) };
     const panel = new THREE.Group();
     const cutAway = (mat: THREE.Material, rel: THREE.Matrix4, keepInside: boolean, key: string) => {
       const prev = mat.onBeforeCompile.bind(mat);
