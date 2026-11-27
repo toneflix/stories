@@ -64,12 +64,12 @@ const fB = (x: number, z: number, y = FY): V3 => B(x, y, z);
 /** Facing angles (about +y, 0 = +z). */
 export const FACE = { north: 0, south: Math.PI, west: -Math.PI / 2, east: Math.PI / 2 };
 export const WAYS: Way[] = [
-  { t: 0, p: fA(1.75, -0.72), face: FACE.north },
-  { t: 45.6, p: fA(1.75, -0.72), face: FACE.north },
+  { t: 0, p: fA(1.75, -0.9), face: FACE.north },
+  { t: 45.6, p: fA(1.75, -0.9), face: FACE.north },
   { t: 48.4, p: fA(0.62, -1.55), face: FACE.west },
   { t: 53.8, p: fA(0.62, -1.55), face: FACE.west },
-  { t: 56.0, p: fA(1.7, -0.75), face: FACE.north },
-  { t: 66.2, p: fA(1.7, -0.75), face: FACE.north },
+  { t: 56.0, p: fA(1.7, -0.9), face: FACE.north },
+  { t: 66.2, p: fA(1.7, -0.9), face: FACE.north },
   { t: 67.8, p: fA(0.5, -0.85) },
   // out through the street door and across the road to the other block's door
   { t: 70.0, p: A(-1.75, 0.3, -0.6) },
@@ -95,7 +95,6 @@ export const HER_CLIPS = new ClipTrack([
   { clip: 'Cup_Idle_Loop', at: 0 },
   { clip: 'Cup_Drink', at: 14.2, fade: 0.5 },
   { clip: 'Cup_Idle_Loop', at: 19.0, fade: 0.6 },
-  { clip: 'Thoughtful', at: 30.5, fade: 0.6 },
   { clip: 'Idle_Loop', at: 44.0, fade: 0.6 },
   { clip: 'Walk_Slow_Loop', at: 45.6, fade: 0.4 },
   { clip: 'Idle_Loop', at: 48.4, fade: 0.4 },
@@ -146,8 +145,8 @@ export const CAMERA: CameraKey[] = [
   { t: 23.01, pos: A(1.85, EYE, 0.25), look: B(1.9, FY + 1.0, -0.4), fov: 26, cut: true },
   { t: 30, pos: A(1.8, EYE, 0.3), look: B(1.9, FY + 1.0, -0.4), fov: 18 },
   // her face, from outside her window
-  { t: 30.01, pos: A(2.75, EYE - 0.05, -0.45), look: A(1.75, EYE - 0.05, -0.75), fov: 34, cut: true },
-  { t: 36, pos: A(2.6, EYE - 0.05, -0.42), look: A(1.75, EYE - 0.05, -0.75), fov: 30 },
+  { t: 30.01, pos: A(1.2, EYE - 0.1, -0.32), look: A(1.75, EYE - 0.1, -0.95), fov: 48, cut: true },
+  { t: 36, pos: A(1.25, EYE - 0.1, -0.32), look: A(1.75, EYE - 0.1, -0.95), fov: 44 },
   // inside the empty flat: the lamp burns, no one there
   { t: 36.01, pos: B(1.2, EYE + 0.2, -4.2), look: B(2.3, FY + 0.9, -0.5), fov: 44, cut: true },
   { t: 44, pos: B(1.5, EYE + 0.1, -3.7), look: B(2.3, FY + 0.85, -0.5), fov: 40 },
@@ -158,8 +157,8 @@ export const CAMERA: CameraKey[] = [
   { t: 53.81, pos: A(1.85, EYE, 0.25), look: B(1.9, FY + 1.0, -0.4), fov: 30, cut: true },
   { t: 61, pos: A(1.8, EYE, 0.3), look: B(1.9, FY + 1.0, -0.4), fov: 20 },
   // her face again
-  { t: 61.01, pos: A(2.75, EYE - 0.05, -0.42), look: A(1.7, EYE - 0.1, -0.78), fov: 36, cut: true },
-  { t: 66.5, pos: A(2.65, EYE - 0.05, -0.4), look: A(1.7, EYE - 0.1, -0.78), fov: 32 },
+  { t: 61.01, pos: A(1.2, EYE - 0.1, -0.32), look: A(1.7, EYE - 0.1, -0.95), fov: 46, cut: true },
+  { t: 66.5, pos: A(1.25, EYE - 0.1, -0.32), look: A(1.7, EYE - 0.1, -0.95), fov: 40 },
   // the street: her window goes dark, she comes out and crosses
   { t: 66.51, pos: B(-4.5, 1.2, 2.6), look: A(0.5, 6.2, 0), fov: 50, cut: true },
   { t: 70.5, pos: B(-4.2, 1.3, 2.4), look: A(-1.0, 2.0, 0), fov: 46 },

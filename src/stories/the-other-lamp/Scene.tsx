@@ -103,7 +103,7 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     // cup, left on the sill later
     const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 0.09, 16), new THREE.MeshStandardMaterial({ color: '#e9e2d0', roughness: 0.4 }));
     cup.castShadow = true;
-    const sill = v(A(1.95, FY + 0.95 + 0.045, -0.4));
+    const sill = v(A(2.3, FY + 0.95 + 0.045, -0.4));
     // ceiling bulb under a paper shade
     const bulbA = new THREE.Mesh(new THREE.SphereGeometry(0.07, 16, 10), new THREE.MeshBasicMaterial({ color: '#fff', toneMapped: false }));
     bulbA.position.set(...A(2.0, level(ROOM.f + 1) - 0.65, -2.4));
@@ -148,7 +148,10 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     const mid = new THREE.PointLight('#ffcf8a', 3, 6, 1.6);
     mid.position.set(...B(STAIR.x0 + 1.0, level(1) + 1.5 + 2.2, STAIR.z0 + 0.6));
     stairs.push(mid);
-    g.add(ceil, lampLightA, lampLightB, ...stairs);
+    // the streetlight's glow coming in through her window, onto her face
+    const spill = new THREE.PointLight('#ffb070', 1.6, 4, 1.5);
+    spill.position.set(...A(1.6, FY + 1.9, 0.9));
+    g.add(ceil, lampLightA, lampLightB, spill, ...stairs);
     return { g, lampA, lampB, clock, cup, sill, bulbA, ceil, lampLightA, lampLightB };
   }, [set]);
 
@@ -199,7 +202,7 @@ const RB_BONES = {
   lowerarm_l: 'Bip01_L_Forearm', lowerarm_r: 'Bip01_R_Forearm',
 };
 const HER = {
-  parts: [asset('characters/rb-neighbour.glb')], boneMap: RB_BONES,
+  parts: [asset('characters/neighbour.glb')], boneMap: RB_BONES,
   animations: ['cup', 'drink', 'look', 'nervous', 'door', 'think', 'walk', 'idle'].map((c) => asset(`animations/rb-neighbour-${c}.glb`)),
 };
 
@@ -229,7 +232,7 @@ function Her({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     // the cup to the sill, the hand to the switch
     if (s.cup > 0 && s.cup < 1) {
       const sh = her.bone('upperarm_r').getWorldPosition(tmp.b);
-      const target = new THREE.Vector3(...A(1.95, FY + 1.06, -0.4));
+      const target = new THREE.Vector3(...A(2.2, FY + 1.06, -0.45));
       const pole = sh.clone().add(new THREE.Vector3(0.4, -0.5, -0.3));
       solveTwoBone(her.bone('upperarm_r'), her.bone('lowerarm_r'), her.bone('hand_r'), target, pole, Math.sin(s.cup * Math.PI));
     }
