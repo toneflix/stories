@@ -1,0 +1,17 @@
+{
+  "r1": {
+    "file": "r1.mp3",
+    "duration": 2.784,
+    "text": "Every night, she sat by the window."
+  },
+  "r2": {
+    "file": "r2.mp3",
+    "duration": 3.432,
+    "text": "The flat across the street had been empty for months."
+  },
+  "r3": {
+    "file": "r3.mp3",
+    "duration": 1.872,
+    "text": "So who turned on the lamp?"
+  }
+}

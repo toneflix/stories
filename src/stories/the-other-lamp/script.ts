@@ -27,6 +27,7 @@ export const SPOT = {
 };
 
 export const CUES: Cue[] = [
+  { at: 2.5, type: 'voice', id: 'r1' }, { at: 12.5, type: 'voice', id: 'r2' }, { at: 37.0, type: 'voice', id: 'r3' },
   { at: 22.5, type: 'sfx', id: 'tick' },
   { at: 24.0, type: 'sfx', id: 'click' },
   { at: 52.0, type: 'wait', target: 'switch', prompt: 'Answer it' },
