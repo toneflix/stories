@@ -21,11 +21,16 @@ const args = process.argv.slice(2);
 const id = args.find((a) => !a.startsWith('--'));
 const flag = (n) => args.includes(`--${n}`);
 const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
-if (!id) { console.error('usage: npm run export -- <story-id> [--hd] [--fps 30] [--from s] [--to s] [--no-subs] [--out file]'); process.exit(1); }
+if (!id) { console.error('usage: npm run export -- <story-id> [--hd] [--fps 30] [--from s] [--to s] [--no-subs] [--chunk i/n] [--out file]'); process.exit(1); }
 
 const [W, H] = flag('hd') ? [1080, 1920] : (opt('size', '720x1280').split('x').map(Number));
 const fps = Number(opt('fps', 30));
-const out = path.resolve(opt('out', `out/${id}${flag('hd') ? '-hd' : ''}.mp4`));
+// --chunk i/n (e.g. 3/8) renders the i-th of n equal frame ranges without sound; part 0 also writes the
+// soundtrack and poster so tools/stitch.mjs can assemble the film.
+const chunk = opt('chunk')?.split('/').map(Number);
+const out = path.resolve(opt('out', chunk
+  ? `out/${id}-parts/part-${String(chunk[0]).padStart(3, '0')}.mp4`
+  : `out/${id}${flag('hd') ? '-hd' : ''}.mp4`));
 fs.mkdirSync(path.dirname(out), { recursive: true });
 
 // no HMR or file watching: an edit mid-export must not reload the page
@@ -41,28 +46,42 @@ await page.waitForFunction(() => document.documentElement.dataset.ready === '1',
 const info = await page.evaluate(() => ({ duration: window.__story.duration, title: window.__story.title }));
 if (info.duration > MAX_DURATION) throw new Error(`${id} is ${info.duration}s; stories must be under 3:33 (${MAX_DURATION}s)`);
 
-const from = Number(opt('from', 0)), to = Math.min(info.duration, Number(opt('to', info.duration)));
-const frames = Math.round((to - from) * fps);
-console.log(`${info.title}: ${to - from}s, ${frames} frames at ${W}x${H}, ${fps} fps`);
+let first, last;
+if (chunk) {
+  const [i, n] = chunk;
+  if (!(n >= 1 && i >= 0 && i < n)) throw new Error(`--chunk ${opt('chunk')}: expected i/n with 0 <= i < n`);
+  const total = Math.round(info.duration * fps);
+  [first, last] = [Math.floor((i * total) / n), Math.floor(((i + 1) * total) / n)];
+} else {
+  first = Math.round(Number(opt('from', 0)) * fps);
+  last = Math.round(Math.min(info.duration, Number(opt('to', info.duration))) * fps);
+}
+const frames = last - first;
+const from = first / fps;
+console.log(`${info.title}: frames ${first}-${last} (${(frames / fps).toFixed(2)}s) at ${W}x${H}, ${fps} fps`);
 
-// soundtrack first (fast), trimmed to the same range
+// soundtrack first (fast): trimmed to the range, or whole for chunked renders
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'story-'));
-const wav = path.join(tmp, 'soundtrack.wav');
-fs.writeFileSync(wav, Buffer.from(await page.evaluate(() => window.__story.soundtrackWav()), 'base64'));
+const wav = chunk ? path.join(path.dirname(out), 'soundtrack.wav') : path.join(tmp, 'soundtrack.wav');
+if (!chunk || chunk[0] === 0) {
+  fs.writeFileSync(wav, Buffer.from(await page.evaluate(() => window.__story.soundtrackWav()), 'base64'));
+}
 
+const audioIn = chunk ? [] : ['-ss', String(from), '-t', String(frames / fps), '-i', wav];
+const audioOut = chunk ? ['-an'] : ['-c:a', 'aac', '-b:a', '192k', '-shortest'];
 const ff = spawn('ffmpeg', [
   '-y', '-loglevel', 'error',
   '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
-  '-ss', String(from), '-t', String(to - from), '-i', wav,
+  ...audioIn,
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
-  '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart',
+  ...audioOut, '-movflags', '+faststart',
   '-metadata', `title=${info.title}`, out,
 ], { stdio: ['pipe', 'inherit', 'inherit'] });
 const done = new Promise((res, rej) => ff.on('close', (c) => (c === 0 ? res() : rej(new Error(`ffmpeg exited ${c}`)))));
 
 const started = Date.now();
 for (let i = 0; i < frames; i++) {
-  const t = from + i / fps;
+  const t = (first + i) / fps;
   await page.evaluate((t) => window.__story.renderAt(t), t);
   const jpg = await page.screenshot({ type: 'jpeg', quality: 94 });
   if (!ff.stdin.write(jpg)) await new Promise((r) => ff.stdin.once('drain', r));
@@ -74,8 +93,11 @@ for (let i = 0; i < frames; i++) {
 ff.stdin.end();
 await done;
 // poster: a frame from the bloom
-await page.evaluate((t) => window.__story.renderAt(t), Number(opt('poster', Math.min(31.5, info.duration / 2))));
-await page.screenshot({ path: out.replace(/\.mp4$/, '.jpg'), type: 'jpeg', quality: 90 });
+if (!chunk || chunk[0] === 0) {
+  const poster = chunk ? path.join(path.dirname(out), 'poster.jpg') : out.replace(/\.mp4$/, '.jpg');
+  await page.evaluate((t) => window.__story.renderAt(t), Number(opt('poster', Math.min(31.5, info.duration / 2))));
+  await page.screenshot({ path: poster, type: 'jpeg', quality: 90 });
+}
 await browser.close();
 await server.close();
 fs.rmSync(tmp, { recursive: true });

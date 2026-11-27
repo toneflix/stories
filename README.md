@@ -18,6 +18,19 @@ npm run build                     # static site in dist/ (deploy anywhere)
 
 The exporter needs `ffmpeg` on your PATH and Chromium for Playwright (`npx playwright install chromium`). On a machine with a GPU, add `--gpu` to render much faster.
 
+### Render on GitHub
+
+You don't need a powerful machine. In your copy of this repo on GitHub, open **Actions → Render a story → Run workflow**, pick a story and a size, and run it. The film is split into parts that render at the same time on up to 20 runners, then joined with the soundtrack. The MP4 and its poster appear under **Artifacts** on the finished run. Runners are free for public repos.
+
+The same split works on one machine:
+
+```bash
+npm run export -- lantern-keeper --chunk 0/4   # …then 1/4, 2/4, 3/4, in parallel if you like
+npm run stitch -- lantern-keeper               # → out/lantern-keeper.mp4
+```
+
+To add a new story to the list, add its id to `options` in [`.github/workflows/render.yml`](.github/workflows/render.yml).
+
 ## House rules
 
 - **9:16** vertical frame.
