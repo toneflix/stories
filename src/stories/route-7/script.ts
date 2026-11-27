@@ -184,5 +184,5 @@ export const CAMERA: CameraKey[] = [
 ];
 
 /** Bus-space points the coin passes through: her hand, the handover, in front of his eyes, the tin. */
-export const FARE = { from: [0.3, 1.25 - LOW, 0.6] as V3, to: [0.08, 1.35 - LOW, 1.05] as V3, view: [0.32, 1.55 - LOW, 1.75] as V3, tin: [0.05, 1.3 - LOW, 1.95] as V3 };
+export const FARE = { from: [0.3, 1.25 - LOW, 0.6] as V3, to: (REAL ? [0.15, 1.12, 0.74] : [0.08, 1.35, 1.05]) as V3, view: [0.32, 1.55 - LOW, 1.75] as V3, tin: [0.05, 1.3 - LOW, 1.95] as V3 };
 export { BUS };

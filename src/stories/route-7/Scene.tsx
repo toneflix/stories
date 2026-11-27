@@ -536,8 +536,9 @@ function Passenger({ model }: { model: BusModel }) {
       if (REAL && k > 0) {
         const duck = smoothstep(0.2, 0.38, k) * (1 - smoothstep(0.92, 1, k));
         her.root.updateMatrixWorld(true);
-        for (const n of ['Bip01_Spine', 'Bip01_Spine1', 'Bip01_Spine2']) her.root.getObjectByName(n)!.rotateZ(duck * 0.42);
-        her.root.position.y -= duck * 0.18;
+        for (const n of ['Bip01_Spine', 'Bip01_Spine1', 'Bip01_Spine2']) her.root.getObjectByName(n)!.rotateZ(duck * 0.13);
+        her.root.getObjectByName('Bip01_Neck')?.rotateZ(-duck * 0.2);
+        her.root.position.y -= duck * 0.07;
       }
       setup.hit.position.copy(stand).add(new THREE.Vector3(0, 1, 0));
     } else {
@@ -546,6 +547,9 @@ function Passenger({ model }: { model: BusModel }) {
       tmp.m.makeTranslation(seat.x - setup.seatHip.x, seat.y + SEATED_HIP - setup.seatHip.y, seat.z - setup.seatHip.z).premultiply(model.group.matrixWorld);
       tmp.m.decompose(her.root.position, her.root.quaternion, tmp.s);
       her.root.visible = true;
+      // she leans forward to hand over the fare
+      const lean = REAL ? smoothstep(0, 0.7, s.reach) * 0.2 : 0;
+      if (lean) for (const n of ['Bip01_Spine', 'Bip01_Spine1', 'Bip01_Spine2']) her.root.getObjectByName(n)!.rotateZ(lean);
     }
     her.root.updateMatrixWorld(true);
     // the wave: right arm up, hand swinging
