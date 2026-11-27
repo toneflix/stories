@@ -506,6 +506,8 @@ function Passenger({ model }: { model: BusModel }) {
     const s = B.at(t);
     model.group.updateMatrixWorld(true);
     her.pose(PASSENGER_CLIPS.sample(t, idle));
+    // Rocketbox walks carry root motion on Bip01; the script moves her instead
+    if (REAL) her.root.getObjectByName('Bip01')!.position.z = 0;
     if (t < BOARDED) {
       // round the end of the shelter and up onto the bench, facing the road; then across the step into the bus
       const face = sh.right.clone().multiplyScalar(-1);
@@ -538,7 +540,7 @@ function Passenger({ model }: { model: BusModel }) {
         her.root.updateMatrixWorld(true);
         for (const n of ['Bip01_Spine', 'Bip01_Spine1', 'Bip01_Spine2']) her.root.getObjectByName(n)!.rotateZ(duck * 0.13);
         her.root.getObjectByName('Bip01_Neck')?.rotateZ(-duck * 0.2);
-        her.root.position.y -= duck * 0.07;
+        her.root.position.y -= duck * 0.12;
       }
       setup.hit.position.copy(stand).add(new THREE.Vector3(0, 1, 0));
     } else {
@@ -556,9 +558,12 @@ function Passenger({ model }: { model: BusModel }) {
     if (s.wave > 0) {
       const sp = her.bone('upperarm_r').getWorldPosition(new THREE.Vector3());
       const face = sh.right.clone().multiplyScalar(-1), side = new THREE.Vector3(-face.z, 0, face.x);
-      const swing = Math.sin(idle * 9) * 0.16;
-      const target = sp.clone().add(new THREE.Vector3(0, 0.58, 0)).addScaledVector(face, 0.18).addScaledVector(side, -0.22 + swing);
-      const pole = sp.clone().addScaledVector(side, -0.6).add(new THREE.Vector3(0, -0.2, 0));
+      // elbow out at shoulder height, forearm up, swinging from the elbow
+      const up = new THREE.Vector3(0, 1, 0), out = side.clone();
+      const elbow = sp.clone().addScaledVector(out, 0.2).addScaledVector(up, 0.1).addScaledVector(face, 0.08);
+      const a = 0.15 + Math.sin(idle * 7) * 0.35;
+      const target = elbow.clone().addScaledVector(up, Math.cos(a) * 0.26).addScaledVector(out, Math.sin(a) * 0.26);
+      const pole = elbow.clone().addScaledVector(out, 0.3).addScaledVector(face, -0.2).addScaledVector(up, -0.1);
       solveTwoBone(her.bone('upperarm_r'), her.bone('lowerarm_r'), her.bone('hand_r'), target, pole, s.wave);
     }
     // the fare: her hand forward with the coin

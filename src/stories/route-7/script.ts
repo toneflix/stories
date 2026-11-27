@@ -25,7 +25,7 @@ export const CUES: Cue[] = [
   { at: 43.0, type: 'sfx', id: 'door' },
   { at: 52.5, type: 'voice', id: 'r5' },
   { at: 58.5, type: 'wait', target: 'passenger', prompt: 'Tap her to wave the bus down' },
-  { at: 60.2, type: 'sfx', id: 'brake' },
+  { at: 59.0, type: 'sfx', id: 'brake' },
   { at: 61.6, type: 'sfx', id: 'horn' },
   { at: 66.2, type: 'sfx', id: 'door' },
   { at: 70.6, type: 'voice', id: 'a1' },
@@ -56,9 +56,10 @@ export const BUS_S = new Track<number>([
   // last stop
   { t: 48.0001, v: STOPS[2] - 26, ease: 'linear' },
   { t: 53.5, v: STOPS[2], ease: 'outCubic' },
-  { t: 56.2, v: STOPS[2] },
-  { t: 60.2, v: STOPS[2] + 7, ease: 'inCubic' },
-  { t: 61.3, v: STOPS[2] + 8, ease: 'outCubic' },
+  // he gives up and pulls away; she waves (the story waits at 58.5 for the tap) and he stops
+  { t: 55.2, v: STOPS[2] },
+  { t: 58.5, v: STOPS[2] + 6, ease: 'inCubic' },
+  { t: 60.6, v: STOPS[2] + 8, ease: 'outCubic' },
   { t: 62.4, v: STOPS[2] + 8 },
   { t: 65.8, v: STOPS[2] },
   // away into the evening
@@ -78,11 +79,11 @@ export const B = beats({ day: 0, door: 0, lights: 0, brake: 0, glance: 0, wave: 
   const door = (at: number, open: boolean) => tl.fromTo(s, { door: open ? 0 : 1 }, { door: open ? 1 : 0, duration: 0.8, ease: 'power2.inOut' }, at);
   door(29.8, true); door(34.6, false); door(40.0, true); door(43.0, false); door(66.2, true); door(89.2, false);
   tl.fromTo(s, { lights: 0 }, { lights: 1, duration: 0.6 }, 50);
-  tl.fromTo(s, { brake: 0 }, { brake: 1, duration: 0.15 }, 60.2).fromTo(s, { brake: 1 }, { brake: 0, duration: 0.4 }, 62.6);
+  tl.fromTo(s, { brake: 0 }, { brake: 1, duration: 0.15 }, 59.0).fromTo(s, { brake: 1 }, { brake: 0, duration: 0.4 }, 62.6);
   // Baba Ayo looks out of the door at each stop, then to the mirror at the last
   tl.fromTo(s, { glance: 0 }, { glance: 1, duration: 0.8 }, 30.2).fromTo(s, { glance: 1 }, { glance: 0, duration: 0.8 }, 34.4)
     .fromTo(s, { glance: 0 }, { glance: 1, duration: 0.8 }, 40.3).fromTo(s, { glance: 1 }, { glance: 0, duration: 0.8 }, 43.0)
-    .fromTo(s, { glance: 0 }, { glance: 1, duration: 0.8 }, 54.0).fromTo(s, { glance: 1 }, { glance: 0, duration: 0.8 }, 55.9);
+    .fromTo(s, { glance: 0 }, { glance: 1, duration: 0.8 }, 53.6).fromTo(s, { glance: 1 }, { glance: 0, duration: 0.8 }, 54.8);
   // she waves him down, then steps aboard
   tl.fromTo(s, { wave: 0 }, { wave: 1, duration: 0.5, ease: 'back.out(2)' }, 58.6).fromTo(s, { wave: 1 }, { wave: 0, duration: 0.7 }, 62.8);
   tl.fromTo(s, { arrive: 0 }, { arrive: 1, duration: 1.4, ease: 'sine.out' }, 56.4);
