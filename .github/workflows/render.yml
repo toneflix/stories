@@ -2,6 +2,8 @@
 # separate runners, then joined with the soundtrack. Actions → Render a story → Run workflow.
 name: Render a story
 on:
+  push:
+    branches: [feat/render-on-github]
   workflow_dispatch:
     inputs:
       story:
