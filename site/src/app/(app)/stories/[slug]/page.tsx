@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CubeIcon, GitHubIcon, PlayIcon } from '@/components/Icons';
 import { findReleased, releasedStories, themeLabel } from '@/content/stories';
+import { findPreview } from '@/lib/access';
 import { siteUrl } from '@/lib/site';
 
 export function generateStaticParams() {
@@ -11,8 +12,12 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps<'/stories/[slug]'>): Promise<Metadata> {
-  const story = findReleased((await params).slug);
-  if (!story) return {};
+  const { slug } = await params;
+  const story = findReleased(slug);
+  if (!story) {
+    const preview = await findPreview(slug);
+    return preview ? { title: preview.title, robots: { index: false } } : {};
+  }
   return {
     title: story.title,
     description: story.caption,
@@ -30,7 +35,8 @@ export async function generateMetadata({ params }: PageProps<'/stories/[slug]'>)
 }
 
 export default async function StoryPage({ params }: PageProps<'/stories/[slug]'>) {
-  const story = findReleased((await params).slug);
+  const { slug } = await params;
+  const story = findReleased(slug) ?? (await findPreview(slug));
   if (!story) notFound();
 
   const videoData = {
