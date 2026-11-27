@@ -1,6 +1,6 @@
 {
   "avatars": [
-    { "dir": "../.sources/rocketbox/avatars/Male_Adult_12", "name": "Male_Adult_12", "out": "../public/assets/characters/rb-ayo.glb" },
+    { "dir": "../.sources/rocketbox/avatars/Male_Adult_12", "name": "Male_Adult_12", "greyHair": true, "out": "../public/assets/characters/rb-ayo.glb" },
     { "dir": "../.sources/rocketbox/avatars/Female_Party_02", "name": "Female_Party_02", "out": "../public/assets/characters/rb-passenger.glb" }
   ],
   "clips": [
