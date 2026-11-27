@@ -4,6 +4,10 @@ import { createRoot } from 'react-dom/client';
 import { Canvas, advance, useFrame, useThree } from '@react-three/fiber';
 import { EffectComposer, Bloom, ToneMapping, SMAA } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
+import { REAL } from './look';
+import { SketchEffect } from './sketch';
+
+const SKETCH = REAL ? new SketchEffect() : null;
 import { ClockContext, StoryClock, useClock } from './clock';
 import { Mixer, loadNarration, encodeWav, type NarrationManifest } from './audio';
 import { clamp, smoothstep } from './timeline';
@@ -152,8 +156,11 @@ function Player({ def }: { def: StoryDefinition }) {
               <Emit />
               <EffectComposer multisampling={0}>
                 <SMAA />
-                <Bloom mipmapBlur intensity={0.9} luminanceThreshold={0.85} luminanceSmoothing={0.2} radius={0.7} />
+                {REAL
+                  ? <Bloom mipmapBlur intensity={0.35} luminanceThreshold={1.1} luminanceSmoothing={0.3} radius={0.6} />
+                  : <Bloom mipmapBlur intensity={0.9} luminanceThreshold={0.85} luminanceSmoothing={0.2} radius={0.7} />}
                 <ToneMapping mode={ToneMappingMode.NEUTRAL} />
+                {SKETCH ? <primitive object={SKETCH} /> : <></>}
               </EffectComposer>
             </ClockContext.Provider>
           </Canvas>

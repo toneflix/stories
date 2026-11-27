@@ -28,7 +28,9 @@ export function solveTwoBone(
   if (weight <= 0) return;
   upper.updateMatrixWorld(true);
   const S = upper.getWorldPosition(new THREE.Vector3());
-  const lenA = lower.position.length(), lenB = end.position.length();
+  // lengths in world space, so rigs under a scaled parent (e.g. centimetre skeletons) solve too
+  const M = lower.getWorldPosition(new THREE.Vector3());
+  const lenA = S.distanceTo(M), lenB = M.distanceTo(end.getWorldPosition(new THREE.Vector3()));
   const toT = new THREE.Vector3().subVectors(target, S);
   const d = THREE.MathUtils.clamp(toT.length(), Math.abs(lenA - lenB) + 1e-3, lenA + lenB - 1e-3);
   const dir = toT.normalize();

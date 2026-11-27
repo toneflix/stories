@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+import { REAL } from './look';
 
 // The house look: flat cel shading (a few hard light bands) plus ink outlines.
 
@@ -14,11 +15,14 @@ export function toonRamp(steps = [0.45, 0.75, 1.0]) {
 export const RAMP = toonRamp();
 export const INK = new THREE.Color('#1c1226');
 
+/** The house material. With REAL it is a plain rough PBR surface instead. */
 export const toon = (color: THREE.ColorRepresentation, extra: THREE.MeshToonMaterialParameters = {}) =>
-  new THREE.MeshToonMaterial({ color, gradientMap: RAMP, ...extra });
+  (REAL ? new THREE.MeshStandardMaterial({ color, roughness: 0.8, ...(extra as THREE.MeshStandardMaterialParameters) })
+    : new THREE.MeshToonMaterial({ color, gradientMap: RAMP, ...extra })) as THREE.MeshToonMaterial;
 
 /** Convert any glTF (PBR) material to cel shading, keeping its colour texture. */
 export function toToon(m: THREE.Material): THREE.MeshToonMaterial {
+  if (REAL) return m as THREE.MeshToonMaterial;
   const s = m as THREE.MeshStandardMaterial;
   const out = new THREE.MeshToonMaterial({
     name: s.name, map: s.map ?? null, color: s.color?.clone() ?? new THREE.Color('#fff'), gradientMap: RAMP,
@@ -48,7 +52,7 @@ export function outlineMaterial(thickness: number, color: THREE.Color = INK) {
 }
 
 export function addOutline(mesh: THREE.Mesh, thickness: number, color?: THREE.Color) {
-  if (!mesh.geometry.attributes.normal) return null;
+  if (REAL || !mesh.geometry.attributes.normal) return null;
   mesh.updateWorldMatrix(true, false);
   const scale = new THREE.Vector3().setFromMatrixScale(mesh.matrixWorld).x || 1;
   const mat = outlineMaterial(thickness / scale, color);

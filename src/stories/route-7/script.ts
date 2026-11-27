@@ -24,7 +24,7 @@ export const CUES: Cue[] = [
   { at: 43.0, type: 'sfx', id: 'door' },
   { at: 52.5, type: 'voice', id: 'r5' },
   { at: 58.5, type: 'wait', target: 'passenger', prompt: 'Tap her to wave the bus down' },
-  { at: 60.2, type: 'sfx', id: 'brake' },
+  { at: 59.0, type: 'sfx', id: 'brake' },
   { at: 61.6, type: 'sfx', id: 'horn' },
   { at: 66.2, type: 'sfx', id: 'door' },
   { at: 70.6, type: 'voice', id: 'a1' },
@@ -55,9 +55,10 @@ export const BUS_S = new Track<number>([
   // last stop
   { t: 48.0001, v: STOPS[2] - 26, ease: 'linear' },
   { t: 53.5, v: STOPS[2], ease: 'outCubic' },
-  { t: 56.2, v: STOPS[2] },
-  { t: 60.2, v: STOPS[2] + 7, ease: 'inCubic' },
-  { t: 61.3, v: STOPS[2] + 8, ease: 'outCubic' },
+  // he gives up and pulls away; she waves (the story waits at 58.5 for the tap) and he stops
+  { t: 55.2, v: STOPS[2] },
+  { t: 58.5, v: STOPS[2] + 6, ease: 'inCubic' },
+  { t: 60.6, v: STOPS[2] + 8, ease: 'outCubic' },
   { t: 62.4, v: STOPS[2] + 8 },
   { t: 65.8, v: STOPS[2] },
   // away into the evening
@@ -77,11 +78,11 @@ export const B = beats({ day: 0, door: 0, lights: 0, brake: 0, glance: 0, wave: 
   const door = (at: number, open: boolean) => tl.fromTo(s, { door: open ? 0 : 1 }, { door: open ? 1 : 0, duration: 0.8, ease: 'power2.inOut' }, at);
   door(29.8, true); door(34.6, false); door(40.0, true); door(43.0, false); door(66.2, true); door(89.2, false);
   tl.fromTo(s, { lights: 0 }, { lights: 1, duration: 0.6 }, 50);
-  tl.fromTo(s, { brake: 0 }, { brake: 1, duration: 0.15 }, 60.2).fromTo(s, { brake: 1 }, { brake: 0, duration: 0.4 }, 62.6);
+  tl.fromTo(s, { brake: 0 }, { brake: 1, duration: 0.15 }, 59.0).fromTo(s, { brake: 1 }, { brake: 0, duration: 0.4 }, 62.6);
   // Baba Ayo looks out of the door at each stop, then to the mirror at the last
   tl.fromTo(s, { glance: 0 }, { glance: 1, duration: 0.8 }, 30.2).fromTo(s, { glance: 1 }, { glance: 0, duration: 0.8 }, 34.4)
     .fromTo(s, { glance: 0 }, { glance: 1, duration: 0.8 }, 40.3).fromTo(s, { glance: 1 }, { glance: 0, duration: 0.8 }, 43.0)
-    .fromTo(s, { glance: 0 }, { glance: 1, duration: 0.8 }, 54.0).fromTo(s, { glance: 1 }, { glance: 0, duration: 0.8 }, 55.9);
+    .fromTo(s, { glance: 0 }, { glance: 1, duration: 0.8 }, 53.6).fromTo(s, { glance: 1 }, { glance: 0, duration: 0.8 }, 54.8);
   // she waves him down, then steps aboard
   tl.fromTo(s, { wave: 0 }, { wave: 1, duration: 0.5, ease: 'back.out(2)' }, 58.6).fromTo(s, { wave: 1 }, { wave: 0, duration: 0.7 }, 62.8);
   tl.fromTo(s, { arrive: 0 }, { arrive: 1, duration: 1.4, ease: 'sine.out' }, 56.4);
@@ -112,6 +113,7 @@ type V3 = [number, number, number];
 /** A point in bus space at time t: x to the driver's side, y up from the water, z to the front. */
 export function busPoint(t: number, x: number, y: number, z: number): V3 {
   const p = routePose(BUS_S.sample(t));
+  y += BUS_RAISE;
   const left = p.right.clone().multiplyScalar(-1);
   const w = p.pos.clone().addScaledVector(left, x).addScaledVector(p.forward, z);
   return [w.x, y, w.z];
@@ -123,7 +125,15 @@ export function shelterPoint(i: number, out: number, along: number, up: number):
   return [w.x, up, w.z];
 }
 
-const driverFace = (t: number) => busPoint(t, 0.45, 1.27, 1.35);
+/** The realistic look's bus is lower: its cabin sits this much further down. */
+const LOW = 0.42;
+/** The realistic bus rides this much higher than the old one, with a little flood still inside. */
+export const BUS_RAISE = 0.3;
+/** ...and its doorway sits further back, so shots through it move back too. */
+/** ...and the over-the-shoulder shot stands wider of her, so her hair isn't the foreground. */
+const SHOULDER = -0.4;
+const DOOR_BACK = 0.55, DOOR_OUT = 0.1, DOOR_WIDEN = 10;
+const driverFace = (t: number) => busPoint(t, 0.45, 1.27 - LOW, 1.35);
 
 /** The narrator's camera. Vertical frame (9:16): favour height, stage in depth. */
 export const CAMERA: CameraKey[] = [
@@ -132,10 +142,10 @@ export const CAMERA: CameraKey[] = [
   { t: 9, pos: [-3.2, 4.5, -26], look: busPoint(9, 0, 1, 0), fov: 44 },
   { t: 14.4, pos: busPoint(14.4, 2.8, 1.4, 5.0), look: busPoint(14.4, 0.4, 1.0, 1.0), fov: 42 },
   // alongside the driver's window, then round to the windscreen
-  { t: 14.5, pos: busPoint(14.5, 2.1, 1.3, 1.45), look: driverFace(14.5), fov: 36, cut: true },
-  { t: 20, pos: busPoint(20, 1.9, 1.3, 1.9), look: driverFace(20), fov: 34 },
-  { t: 23.2, pos: busPoint(23.2, 2.4, 1.35, 3.6), look: busPoint(23.2, 0.45, 1.2, 1.6), fov: 38 },
-  { t: 25.9, pos: busPoint(25.9, 0.7, 1.3, 4.6), look: busPoint(25.9, 0.35, 1.1, 1.5), fov: 38 },
+  { t: 14.5, pos: busPoint(14.5, 2.1 + LOW, 1.3 - LOW, 1.45), look: driverFace(14.5), fov: 36, cut: true },
+  { t: 20, pos: busPoint(20, 1.9 + LOW, 1.3 - LOW, 1.9), look: driverFace(20), fov: 34 },
+  { t: 23.2, pos: busPoint(23.2, 2.4, 1.35 - LOW, 3.6), look: busPoint(23.2, 0.45, 1.2 - LOW, 1.6), fov: 38 },
+  { t: 25.9, pos: busPoint(25.9, 0.7, 1.3 - LOW * 0.5, 4.6), look: busPoint(25.9, 0.35, 1.1 - LOW, 1.5), fov: 38 },
   // stop 1, from up the street: the bus pulls in beside the empty shelter
   { t: 26, pos: shelterPoint(0, -0.2, 7.5, 1.1), look: shelterPoint(0, -1.2, -6, 1.1), fov: 46, cut: true },
   { t: 31, pos: shelterPoint(0, -0.3, 7.0, 1.15), look: shelterPoint(0, -0.9, -0.5, 1.1), fov: 42 },
@@ -151,16 +161,17 @@ export const CAMERA: CameraKey[] = [
   { t: 53.5, pos: shelterPoint(2, 0.35, -2.8, 1.2), look: busPoint(53.5, 0.2, 1.1, 0.6), fov: 44 },
   { t: 56.4, pos: shelterPoint(2, 0.3, -2.9, 1.2), look: busPoint(56.4, 0.2, 1.1, 0.6), fov: 44 },
   // over her shoulder as the bus pulls away, stops and backs up
-  { t: 56.5, pos: shelterPoint(2, 0.6, -1.3, 2.0), look: shelterPoint(2, -2.2, 5, 1.3), fov: 50, cut: true },
-  { t: 58.5, pos: shelterPoint(2, 0.6, -1.2, 2.0), look: shelterPoint(2, -2.2, 6, 1.35), fov: 48, hold: true },
-  { t: 62.5, pos: shelterPoint(2, 0.6, -1.2, 2.0), look: shelterPoint(2, -2.2, 6, 1.3), fov: 48 },
-  { t: 66, pos: shelterPoint(2, 0.7, -2.0, 1.9), look: shelterPoint(2, -1.0, 0.6, 1.1), fov: 50 },
-  { t: 69.4, pos: shelterPoint(2, 0.7, -2.2, 1.85), look: shelterPoint(2, -1.4, 0.6, 1.0), fov: 50 },
+  { t: 56.5, pos: shelterPoint(2, 0.6 + SHOULDER, -1.3, 2.0), look: shelterPoint(2, -2.2, 5, 1.3), fov: 50, cut: true },
+  { t: 58.5, pos: shelterPoint(2, 0.6 + SHOULDER, -1.2, 2.0), look: shelterPoint(2, -2.2, 6, 1.35), fov: 48, hold: true },
+  { t: 62.5, pos: shelterPoint(2, 0.6 + SHOULDER, -1.2, 2.0), look: shelterPoint(2, -2.2, 6, 1.3), fov: 48 },
+  // low, from the shelter: she steps across and ducks in through the T3's low doorway
+  { t: 65.9, pos: shelterPoint(2, 0.45, -1.35, 1.3), look: shelterPoint(2, -1.5, -0.1, 0.95), fov: 56, cut: true },
+  { t: 69.4, pos: shelterPoint(2, 0.45, -1.3, 1.28), look: shelterPoint(2, -1.6, 0.0, 0.9), fov: 54 },
   // through the open door: the conversation and the fare
-  { t: 69.5, pos: busPoint(69.5, -1.8, 1.2, 0.7), look: busPoint(69.5, 0.4, 1.12, 0.85), fov: 46, cut: true },
-  { t: 79, pos: busPoint(79, -1.7, 1.2, 0.75), look: busPoint(79, 0.4, 1.1, 0.9), fov: 43 },
-  { t: 84, pos: busPoint(84, -1.6, 1.2, 0.8), look: busPoint(84, 0.35, 1.1, 1.05), fov: 38 },
-  { t: 88.4, pos: busPoint(88.4, -1.6, 1.2, 0.8), look: busPoint(88.4, 0.35, 1.12, 0.9), fov: 40 },
+  { t: 69.5, pos: busPoint(69.5, -1.8 - DOOR_OUT, 1.2 - LOW, 0.7 - DOOR_BACK), look: busPoint(69.5, 0.4, 1.12 - LOW, 0.85), fov: 46 + DOOR_WIDEN, cut: true },
+  { t: 79, pos: busPoint(79, -1.7 - DOOR_OUT, 1.2 - LOW, 0.75 - DOOR_BACK), look: busPoint(79, 0.4, 1.1 - LOW, 0.9), fov: 43 + DOOR_WIDEN },
+  { t: 84, pos: busPoint(84, -1.6 - DOOR_OUT, 1.2 - LOW, 0.8 - DOOR_BACK), look: busPoint(84, 0.35, 1.1 - LOW, 1.05), fov: 38 + DOOR_WIDEN },
+  { t: 88.4, pos: busPoint(88.4, -1.6 - DOOR_OUT, 1.2 - LOW, 0.8 - DOOR_BACK), look: busPoint(88.4, 0.35, 1.12 - LOW, 0.9), fov: 40 + DOOR_WIDEN },
   // away into the sunset
   { t: 88.5, pos: busPoint(88.5, -4.5, 1.6, -7), look: busPoint(88.5, 0, 1.0, 0), fov: 46, cut: true },
   { t: 101, pos: busPoint(88.5, -1.5, 3.2, -12), look: busPoint(101, 0, 1.5, 6), fov: 42 },
@@ -168,5 +179,5 @@ export const CAMERA: CameraKey[] = [
 ];
 
 /** Bus-space points the coin passes through: her hand, the handover, in front of his eyes, the tin. */
-export const FARE = { from: [0.3, 1.25, 0.6] as V3, to: [0.08, 1.35, 1.05] as V3, view: [0.32, 1.55, 1.75] as V3, tin: [0.05, 1.3, 1.95] as V3 };
+export const FARE = { from: [0.3, 1.25 - LOW, 0.6] as V3, to: [0.15, 1.12, 0.74] as V3, view: [0.32, 1.55 - LOW, 1.75] as V3, tin: [0.05, 1.3 - LOW, 1.95] as V3 };
 export { BUS };

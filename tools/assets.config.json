@@ -30,50 +30,6 @@
         "MI_Hair_2",
         "MI_Hair_1"
       ]
-    },
-    {
-      "src": "../.sources/ubc/Superhero_Male_FullBody.gltf",
-      "out": "../public/assets/characters/driver-body.glb",
-      "textures": {
-        "MI_Superhero_Male": "../.sources/ubc/T_Superhero_Male_Dark.png"
-      },
-      "keepAlpha": [
-        "MI_Hair_1"
-      ],
-      "cullUnder": [
-        "../.sources/outfits/Outfit_Male_Peasant.gltf"
-      ],
-      "cull": {
-        "keepBones": [
-          "Head"
-        ],
-        "distance": 0.025
-      }
-    },
-    {
-      "src": "../.sources/outfits/Outfit_Male_Peasant.gltf",
-      "out": "../public/assets/characters/driver-outfit.glb"
-    },
-    {
-      "src": "../.sources/hair/Hair_Buzzed.gltf",
-      "out": "../public/assets/characters/hair-buzzed.glb",
-      "keepAlpha": [
-        "MI_Hair_1"
-      ]
-    },
-    {
-      "src": "../.sources/hair/Hair_Beard.gltf",
-      "out": "../public/assets/characters/hair-beard.glb",
-      "keepAlpha": [
-        "MI_Hair_1"
-      ]
-    },
-    {
-      "src": "../.sources/hair/Hair_Long.gltf",
-      "out": "../public/assets/characters/hair-long.glb",
-      "keepAlpha": [
-        "MI_Hair_2"
-      ]
     }
   ],
   "animations": [
@@ -102,29 +58,34 @@
         "Yes",
         "Idle_FoldArms_Loop"
       ]
+    }
+  ],
+  "props": [
+    {
+      "src": "../.sources/props/vw-t3.glb",
+      "out": "../public/assets/props/vw-t3.glb",
+      "textureSize": 1024
     },
     {
-      "src": "../.sources/ual/UAL1_Standard.glb",
-      "out": "../public/assets/animations/route-7-ual1.glb",
-      "clips": [
-        "Idle_Loop",
-        "Walk_Loop",
-        "Driving_Loop",
-        "Sitting_Enter",
-        "Sitting_Idle_Loop",
-        "Sitting_Talking_Loop",
-        "Interact",
-        "Idle_Talking_Loop"
-      ]
+      "src": "../.sources/props/old-residential.glb",
+      "out": "../public/assets/props/old-residential.glb",
+      "textureSize": 1024,
+      "simplify": 0.35,
+      "simplifyError": 0.01
     },
     {
-      "src": "../.sources/ual/UAL2_Standard.glb",
-      "out": "../public/assets/animations/route-7-ual2.glb",
-      "clips": [
-        "Idle_Rail_Call",
-        "Yes",
-        "Idle_TalkingPhone_Loop"
-      ]
+      "src": "../.sources/props/modular-slums.glb",
+      "out": "../public/assets/props/modular-slums.glb",
+      "textureSize": 512,
+      "keepParts": true
+    },
+    {
+      "src": "../.sources/props/slum-house.glb",
+      "out": "../public/assets/props/slum-house.glb",
+      "textureSize": 1024,
+      "drop": "^Ground",
+      "simplify": 0.3,
+      "simplifyError": 0.01
     }
   ]
 }

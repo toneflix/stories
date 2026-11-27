@@ -18,6 +18,9 @@ export interface BusModel {
   passengerSeat: THREE.Vector3;
   wheelMount: THREE.Group;
   tin: THREE.Group;
+  /** The body panels, and inside it the cabin (floor, seats, dash) that a swapped-in body can keep. */
+  shell: THREE.Group;
+  cabin: THREE.Group;
 }
 
 export function buildBus(): BusModel {
@@ -39,7 +42,6 @@ export function buildBus(): BusModel {
   add(shell, panel(t, low, frontLen), paint, -W / 2 + t / 2, 0.15 + low / 2, L / 2 - frontLen / 2);
   add(shell, new RoundedBoxGeometry(W, low + 0.1, 0.16, 3, 0.07), paint, 0, 0.15 + low / 2, L / 2 - 0.08);
   add(shell, new RoundedBoxGeometry(W, low + 0.1, 0.12, 3, 0.05), paint, 0, 0.15 + low / 2, -L / 2 + 0.06);
-  add(shell, panel(W - 0.04, 0.1, L - 0.1), inside, 0, F - 0.05, 0);
   add(shell, panel(W - 0.1, F - 0.2, L - 0.3), dark, 0, 0.1 + (F - 0.2) / 2, 0);
   // stripes and bumpers
   for (const y of [0.62, B - 0.04]) {
@@ -80,34 +82,37 @@ export function buildBus(): BusModel {
   }
 
   // inside: driver's seat, steering wheel, dashboard, benches
+  const cabin = new THREE.Group();
+  shell.add(cabin);
+  add(cabin, panel(W - 0.04, 0.1, L - 0.1), inside, 0, F - 0.05, 0);
   const driverSeat = new THREE.Vector3(0.45, F + 0.44, 1.35);
   const passengerSeat = new THREE.Vector3(0.42, F + 0.44, 0.3);
   const benchAt = (x: number, z: number, w: number) => {
-    add(shell, new RoundedBoxGeometry(w, 0.12, 0.5, 2, 0.04), seat, x, F + 0.38, z);
-    add(shell, new RoundedBoxGeometry(w, 0.55, 0.1, 2, 0.04), seat, x, F + 0.7, z - 0.27);
-    add(shell, panel(w * 0.8, 0.32, 0.3), dark, x, F + 0.16, z);
+    add(cabin, new RoundedBoxGeometry(w, 0.12, 0.5, 2, 0.04), seat, x, F + 0.38, z);
+    add(cabin, new RoundedBoxGeometry(w, 0.55, 0.1, 2, 0.04), seat, x, F + 0.7, z - 0.27);
+    add(cabin, panel(w * 0.8, 0.32, 0.3), dark, x, F + 0.16, z);
   };
   benchAt(driverSeat.x, driverSeat.z, 0.55);
   benchAt(-0.45, driverSeat.z, 0.7);
   benchAt(0.42, passengerSeat.z, 0.85);
   benchAt(0.12, -1.05, 1.6);
   benchAt(0.12, -1.95, 1.6);
-  add(shell, new RoundedBoxGeometry(W - 0.1, 0.22, 0.4, 2, 0.06), dark, 0, B - 0.02, L / 2 - 0.3);
+  add(cabin, new RoundedBoxGeometry(W - 0.1, 0.22, 0.4, 2, 0.06), dark, 0, B - 0.02, L / 2 - 0.3);
   const wheelMount = new THREE.Group();
   const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.022, 8, 28), dark);
   const column = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.5, 8).rotateX(Math.PI / 2).translate(0, 0, 0.25), dark);
   wheelMount.add(wheel, column);
-  shell.add(wheelMount);
+  cabin.add(wheelMount);
   // the fare tin on the dash and the route card in the windscreen
   const tin = new THREE.Group();
   tin.add(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.11, 16, 1, true), toon('#b5b9bc', { side: THREE.DoubleSide })));
   add(tin, new THREE.CylinderGeometry(0.07, 0.07, 0.01, 16), toon('#8d9194'), 0, -0.05, 0);
   tin.position.set(0.05, B + 0.15, L / 2 - 0.4);
-  shell.add(tin);
+  cabin.add(tin);
   const card = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.2), new THREE.MeshBasicMaterial({ map: signTexture('ROUTE 7', '#fff8e8', '#1b1b1b', 512, 165) }));
   card.position.set(-0.45, B + 0.2, L / 2 - 0.12);
   card.rotation.x = -0.15;
-  shell.add(card);
+  cabin.add(card);
 
   toonify(shell, { outline: 0.012 });
   group.add(shell);
@@ -147,5 +152,5 @@ export function buildBus(): BusModel {
     tail.rotation.y = Math.PI;
     group.add(tail);
   }
-  return { group, door, headlights, headGlow, brake, driverSeat, passengerSeat, wheelMount, tin };
+  return { group, door, headlights, headGlow, brake, driverSeat, passengerSeat, wheelMount, tin, shell, cabin };
 }
