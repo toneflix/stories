@@ -50,15 +50,15 @@ jobs:
       matrix:
         part: ${{ fromJSON(needs.plan.outputs.parts) }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - run: npx playwright install --with-deps --only-shell chromium
       - name: Render part ${{ matrix.part }}
         run: node tools/export.mjs "$STORY" --size "$SIZE" --chunk "${{ matrix.part }}/${{ needs.plan.outputs.count }}" ${LOOK:+--look "$LOOK"} --out "parts/part-$(printf %03d ${{ matrix.part }}).mp4"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: part-${{ matrix.part }}
           path: parts/
@@ -68,12 +68,12 @@ jobs:
     needs: render
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with: { pattern: 'part-*', path: parts, merge-multiple: true }
       - run: node tools/stitch.mjs "$STORY" --parts parts --out "out/$STORY-$SIZE.mp4"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ env.STORY }}-${{ env.SIZE }}
           path: out/
