@@ -245,7 +245,9 @@ function FeedItem({
                 Hide
               </button>
             </div>
-            <h2 className="caption-title">{story.title}</h2>
+            <h2 className="caption-title">
+              <Link href={`/stories/${story.slug}`}>{story.title}</Link>
+            </h2>
             <p className={expanded ? 'caption-text' : 'caption-text clamp'} onClick={() => setExpanded((x) => !x)}>
               {story.caption}
             </p>

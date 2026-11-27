@@ -21,6 +21,8 @@ export type ReleasedStory = Base & {
   stills: string[];
   liveUrl: string;
   sourceUrl: string;
+  seconds: number;
+  published: string;
 };
 
 export type UpcomingStory = Base & { status: 'coming-soon' };
@@ -44,6 +46,8 @@ const released: ReleasedStory[] = [
     stills: [1, 2, 3, 4].map((n) => `/media/lantern-keeper/still-${n}.jpg`),
     liveUrl: `${liveBase}/stories/lantern-keeper/`,
     sourceUrl: source('lantern-keeper'),
+    seconds: 45,
+    published: '2026-11-26',
   },
 ];
 
