@@ -1,7 +1,12 @@
-# Renders a story's 9:16 video. The film is split into parts that render at the same time on
-# separate runners, then joined with the soundtrack. Actions → Render a story → Run workflow.
-name: Render a story
+# Renders story videos. Each film is split into parts that render at the same time on separate
+# runners, then joined with the soundtrack.
+#   Run by hand: Actions → Render stories → Run workflow, for one story.
+#   On a published release: every story, or only the one whose id ends the tag (1.0.0-route-7),
+#   and the new videos are committed to site/public/media/<id>/.
+name: Render stories
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       story:
@@ -15,32 +20,43 @@ on:
         options: ['720x1280', '1080x1920']
         default: '720x1280'
       parts:
-        description: Runners to share the work (1 to 20)
+        description: Runners to share the work for each story (1 to 20)
         type: number
         default: 16
-      look:
-        description: Look (empty for the story's own)
-        type: string
-        default: ''
 permissions:
   contents: read
 env:
-  STORY: ${{ inputs.story || 'lantern-keeper' }}
   SIZE: ${{ inputs.size || '720x1280' }}
-  LOOK: ${{ inputs.look }}
 jobs:
   plan:
     runs-on: ubuntu-24.04
     outputs:
+      stories: ${{ steps.plan.outputs.stories }}
       parts: ${{ steps.plan.outputs.parts }}
       count: ${{ steps.plan.outputs.count }}
     steps:
+      - uses: actions/checkout@v7
       - id: plan
-        env: { PARTS: '${{ inputs.parts || 16 }}' }
+        env:
+          PARTS: ${{ inputs.parts || 16 }}
+          STORY: ${{ inputs.story }}
+          TAG: ${{ github.event.release.tag_name }}
         run: |
+          all=$(ls src/stories)
+          if [ -n "$TAG" ]; then
+            stories=""
+            for s in $all; do
+              if [ "$TAG" = "$s" ] || [ "${TAG%-"$s"}" != "$TAG" ]; then stories=$s; fi
+            done
+            stories=${stories:-$all}
+          else
+            stories=$STORY
+          fi
           n=$(( PARTS < 1 ? 1 : PARTS > 20 ? 20 : PARTS ))
+          echo "Rendering: $stories ($n parts each)"
+          echo "stories=$(printf '%s\n' $stories | jq -Rsc 'split("\n") | map(select(length > 0))')" >> "$GITHUB_OUTPUT"
+          echo "parts=$(jq -nc "[range($n)]")" >> "$GITHUB_OUTPUT"
           echo "count=$n" >> "$GITHUB_OUTPUT"
-          echo "parts=[$(seq -s, 0 $((n - 1)))]" >> "$GITHUB_OUTPUT"
 
   render:
     needs: plan
@@ -48,6 +64,7 @@ jobs:
     timeout-minutes: 300
     strategy:
       matrix:
+        story: ${{ fromJSON(needs.plan.outputs.stories) }}
         part: ${{ fromJSON(needs.plan.outputs.parts) }}
     steps:
       - uses: actions/checkout@v7
@@ -56,25 +73,69 @@ jobs:
       - run: npm ci
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - run: npx playwright install --with-deps --only-shell chromium
-      - name: Render part ${{ matrix.part }}
-        run: node tools/export.mjs "$STORY" --size "$SIZE" --chunk "${{ matrix.part }}/${{ needs.plan.outputs.count }}" ${LOOK:+--look "$LOOK"} --out "parts/part-$(printf %03d ${{ matrix.part }}).mp4"
+      - name: Render ${{ matrix.story }} part ${{ matrix.part }}
+        env: { STORY: '${{ matrix.story }}' }
+        run: node tools/export.mjs "$STORY" --size "$SIZE" --chunk "${{ matrix.part }}/${{ needs.plan.outputs.count }}" --out "parts/part-$(printf %03d ${{ matrix.part }}).mp4"
       - uses: actions/upload-artifact@v7
         with:
-          name: part-${{ matrix.part }}
+          name: part-${{ matrix.story }}-${{ matrix.part }}
           path: parts/
           retention-days: 1
 
   stitch:
-    needs: render
+    needs: [plan, render]
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        story: ${{ fromJSON(needs.plan.outputs.stories) }}
+    env: { STORY: '${{ matrix.story }}' }
     steps:
       - uses: actions/checkout@v7
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - uses: actions/download-artifact@v8
-        with: { pattern: 'part-*', path: parts, merge-multiple: true }
+        with: { pattern: 'part-${{ matrix.story }}-*', path: parts, merge-multiple: true }
       - run: node tools/stitch.mjs "$STORY" --parts parts --out "out/$STORY-$SIZE.mp4"
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.STORY }}-${{ env.SIZE }}
+          name: ${{ matrix.story }}-${{ env.SIZE }}
           path: out/
+      - if: github.event_name == 'release'
+        run: node tools/stitch.mjs "$STORY" --parts parts --web --out "web/$STORY/video.mp4"
+      - if: github.event_name == 'release'
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-${{ matrix.story }}
+          path: web/
+          retention-days: 1
       - run: echo "Rendered **$STORY** at $SIZE. Download it from the artifacts below." >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    if: github.event_name == 'release'
+    needs: stitch
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with: { ref: '${{ github.event.repository.default_branch }}' }
+      - uses: actions/download-artifact@v8
+        with: { pattern: 'web-*', path: web, merge-multiple: true }
+      - name: Commit the new videos
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          AUTHOR: ${{ github.event.release.author.login }}
+          AUTHOR_ID: ${{ github.event.release.author.id }}
+          BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          for dir in web/*/; do
+            s=$(basename "$dir")
+            mkdir -p "site/public/media/$s"
+            cp "$dir/video.mp4" "site/public/media/$s/video.mp4"
+            [ -f "site/public/media/$s/poster.jpg" ] || cp "$dir/video.jpg" "site/public/media/$s/poster.jpg"
+          done
+          git add site/public/media
+          if git diff --cached --quiet; then echo "Videos unchanged."; exit 0; fi
+          git -c user.name="$AUTHOR" -c user.email="$AUTHOR_ID+$AUTHOR@users.noreply.github.com" \
+            commit -m "chore: render videos for $TAG"
+          for i in 1 2 3; do git push origin "HEAD:$BRANCH" && exit 0; git pull --rebase origin "$BRANCH"; done
+          exit 1
