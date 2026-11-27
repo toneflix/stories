@@ -30,50 +30,6 @@
         "MI_Hair_2",
         "MI_Hair_1"
       ]
-    },
-    {
-      "src": "../.sources/ubc/Superhero_Male_FullBody.gltf",
-      "out": "../public/assets/characters/driver-body.glb",
-      "textures": {
-        "MI_Superhero_Male": "../.sources/ubc/T_Superhero_Male_Dark.png"
-      },
-      "keepAlpha": [
-        "MI_Hair_1"
-      ],
-      "cullUnder": [
-        "../.sources/outfits/Outfit_Male_Peasant.gltf"
-      ],
-      "cull": {
-        "keepBones": [
-          "Head"
-        ],
-        "distance": 0.025
-      }
-    },
-    {
-      "src": "../.sources/outfits/Outfit_Male_Peasant.gltf",
-      "out": "../public/assets/characters/driver-outfit.glb"
-    },
-    {
-      "src": "../.sources/hair/Hair_Buzzed.gltf",
-      "out": "../public/assets/characters/hair-buzzed.glb",
-      "keepAlpha": [
-        "MI_Hair_1"
-      ]
-    },
-    {
-      "src": "../.sources/hair/Hair_Beard.gltf",
-      "out": "../public/assets/characters/hair-beard.glb",
-      "keepAlpha": [
-        "MI_Hair_1"
-      ]
-    },
-    {
-      "src": "../.sources/hair/Hair_Long.gltf",
-      "out": "../public/assets/characters/hair-long.glb",
-      "keepAlpha": [
-        "MI_Hair_2"
-      ]
     }
   ],
   "animations": [
@@ -101,29 +57,6 @@
         "Idle_No_Loop",
         "Yes",
         "Idle_FoldArms_Loop"
-      ]
-    },
-    {
-      "src": "../.sources/ual/UAL1_Standard.glb",
-      "out": "../public/assets/animations/route-7-ual1.glb",
-      "clips": [
-        "Idle_Loop",
-        "Walk_Loop",
-        "Driving_Loop",
-        "Sitting_Enter",
-        "Sitting_Idle_Loop",
-        "Sitting_Talking_Loop",
-        "Interact",
-        "Idle_Talking_Loop"
-      ]
-    },
-    {
-      "src": "../.sources/ual/UAL2_Standard.glb",
-      "out": "../public/assets/animations/route-7-ual2.glb",
-      "clips": [
-        "Idle_Rail_Call",
-        "Yes",
-        "Idle_TalkingPhone_Loop"
       ]
     }
   ],

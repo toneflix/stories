@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
-// `?look=real` swaps the house cel look for lit, physically based materials (a test of a
-// realistic style). Stories read REAL to pick their sky, water and surfaces.
-export const REAL = typeof location !== 'undefined' && new URLSearchParams(location.search).get('look') === 'real';
+// A story page with <meta name="tf-look" content="real"> uses lit, physically based materials
+// and the sketch pass instead of the house cel look.
+export const REAL = typeof document !== 'undefined' && document.querySelector('meta[name="tf-look"]')?.getAttribute('content') === 'real';
 
 /** Tileable noise on a canvas: a sum of sines at whole-number frequencies, so edges match. */
 export function tileNoise(size: number, seed: number, octaves = 6) {

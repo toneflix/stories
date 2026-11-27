@@ -16,7 +16,7 @@ import { colored, mergedMesh } from './city';
 import { rng } from '../../engine/random';
 import { SKY, SUN_DIR, col } from './Scene';
 
-// The realistic look for Route 7 (`?look=real`): a scattering sky that also lights the
+// Route 7's look: a scattering sky that also lights the
 // scene, a reflective flood, and weathered surfaces on the buildings and the bus.
 
 /** Sky with sun and clouds, the image-based light made from it, haze and the sun lamp. */

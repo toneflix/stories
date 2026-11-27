@@ -4,7 +4,6 @@
 //   npm run export -- lantern-keeper                # 720x1280, 30 fps → out/lantern-keeper.mp4
 //   npm run export -- lantern-keeper --hd           # 1080x1920
 //   npm run export -- lantern-keeper --from 20 --to 26 --no-subs
-//   npm run export -- route-7 --look real         # the realistic look test
 //
 // How: starts Vite, opens the story in headless Chromium with ?capture, and for every
 // frame calls window.__story.renderAt(t) and takes a screenshot (canvas + subtitles/title

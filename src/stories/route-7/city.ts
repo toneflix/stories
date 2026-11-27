@@ -2,8 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { toon, addOutline } from '../../engine/toon';
 import { rng } from '../../engine/random';
-import { REAL } from '../../engine/look';
-import { C, blocks, palmSpots, poleSpots, shelterPose, signTexture, STOPS } from './world';
+import { C, palmSpots, poleSpots, shelterPose, signTexture, STOPS } from './world';
 
 // Static set dressing, built once: buildings, palms, poles and wires, bus shelters.
 // Each kind is merged into a single vertex-coloured mesh so the frame stays cheap.
@@ -28,83 +27,6 @@ export function mergedMesh(parts: THREE.BufferGeometry[], outline = 0.03) {
   return mesh;
 }
 
-const SHOP_SIGNS = ['PHARMACY', 'BUKA', 'TAILOR', 'POS', 'BARBING SALON', 'PROVISIONS', 'PHONE REPAIRS', 'HOTEL', 'CHEMIST', 'BOUTIQUE'];
-
-/**
- * Concrete blocks of two to six storeys with window rows, balconies, parapets,
- * rooftop water tanks and painted shop boards, standing in the flood.
- */
-export function buildCity() {
-  const group = new THREE.Group();
-  const parts: THREE.BufferGeometry[] = [];
-  const signs: { text: string; color: string; w: number; pos: THREE.Vector3; rotY: number }[] = [];
-  let signIndex = 0;
-  for (const b of blocks()) {
-    const r = rng(b.seed);
-    const H = b.floors * 3 + 0.6;
-    // the block's own frame: local +z faces the street
-    const toStreet = -b.side;
-    const m = new THREE.Matrix4().makeRotationY(toStreet > 0 ? -Math.PI / 2 : Math.PI / 2).setPosition(b.x, 0, b.z);
-    const local: THREE.BufferGeometry[] = [];
-    const wall = new THREE.Color(b.wall);
-    local.push(box(b.w, H + 3, b.d, 0, (H - 3) / 2, 0, wall));
-    // water stain along the flood line
-    local.push(box(b.w + 0.04, 0.5, b.d + 0.04, 0, 0.12, 0, wall.clone().multiplyScalar(0.62)));
-    // floor bands
-    for (let f = 1; f <= b.floors; f++) local.push(box(b.w + 0.08, 0.16, b.d + 0.08, 0, f * 3 - 0.05, 0, C.trim));
-    // windows on the street face and the near side
-    const glass = new THREE.Color(C.glassDark), frame = new THREE.Color(C.trim);
-    const cols = Math.max(1, Math.floor(b.w / 2.3));
-    for (let f = 0; f < b.floors; f++) {
-      const y = f * 3 + 1.7;
-      for (let c = 0; c < cols; c++) {
-        const x = -b.w / 2 + (c + 0.5) * (b.w / cols);
-        const open = r() > 0.8;
-        local.push(box(1.0, 1.25, 0.08, x, y, b.d / 2 + 0.02, open ? '#151a20' : glass));
-        local.push(box(1.18, 0.1, 0.18, x, y - 0.68, b.d / 2 + 0.06, frame));
-        if (r() > 0.5) local.push(box(0.5, 1.3, 0.05, x - 0.78, y, b.d / 2 + 0.04, new THREE.Color(b.wall).offsetHSL(0, 0.05, -0.18)));
-      }
-      // balcony with a railing on some floors
-      if (f > 0 && r() > 0.55) {
-        const bw = Math.min(b.w - 1, 2.6 + r() * 2), bx = (r() - 0.5) * (b.w - bw);
-        local.push(box(bw, 0.18, 1.1, bx, f * 3 + 0.05, b.d / 2 + 0.55, C.trim));
-        local.push(box(bw, 0.08, 0.08, bx, f * 3 + 1.0, b.d / 2 + 1.06, '#3c3a38'));
-        for (let k = 0; k <= Math.floor(bw / 0.35); k++) local.push(box(0.04, 0.9, 0.04, bx - bw / 2 + k * 0.35, f * 3 + 0.55, b.d / 2 + 1.06, '#3c3a38'));
-      }
-    }
-    // shop board on the first floor
-    if (r() > 0.35) {
-      const sw = Math.min(b.w - 0.8, 3.2 + r() * 2.2);
-      signs.push({
-        text: SHOP_SIGNS[signIndex++ % SHOP_SIGNS.length], color: C.sign[Math.floor(r() * C.sign.length)], w: sw,
-        pos: new THREE.Vector3((r() - 0.5) * (b.w - sw), 2.45, b.d / 2 + 0.12).applyMatrix4(m), rotY: toStreet > 0 ? -Math.PI / 2 : Math.PI / 2,
-      });
-    }
-    // roof: parapet and tanks, or a rusty tin roof
-    if (b.roof === 'flat') {
-      local.push(box(b.w, 0.5, 0.15, 0, H + 0.2, b.d / 2, wall), box(b.w, 0.5, 0.15, 0, H + 0.2, -b.d / 2, wall));
-      local.push(box(0.15, 0.5, b.d, b.w / 2, H + 0.2, 0, wall), box(0.15, 0.5, b.d, -b.w / 2, H + 0.2, 0, wall));
-      const tanks = 1 + Math.floor(r() * 3);
-      for (let k = 0; k < tanks; k++) {
-        const tx = (r() - 0.5) * (b.w - 2), tz = (r() - 0.5) * (b.d - 2);
-        local.push(colored(new THREE.CylinderGeometry(0.55, 0.55, 1.2, 14).translate(tx, H + 0.8, tz), C.tank));
-        local.push(box(1.3, 0.25, 1.3, tx, H + 0.1, tz, '#6e6a64'));
-      }
-    } else {
-      const roof = new THREE.CylinderGeometry(0.01, b.w * 0.62, 1.6, 4, 1).rotateY(Math.PI / 4).scale(1, 1, b.d / b.w).translate(0, H + 0.8, 0);
-      local.push(colored(roof, C.roofRust));
-    }
-    for (const g of local) parts.push(g.applyMatrix4(m));
-  }
-  group.add(mergedMesh(parts, 0.04));
-  for (const s of signs) {
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(s.w, 0.8), new THREE.MeshToonMaterial({ map: signTexture(s.text, s.color, '#fff6e0', 512, Math.round(512 * 0.8 / s.w)) }));
-    mesh.position.copy(s.pos);
-    mesh.rotation.y = s.rotY;
-    group.add(mesh);
-  }
-  return group;
-}
 
 /** Coconut palms: a curved trunk and a crown of drooping fronds. */
 export function buildPalms() {
@@ -163,8 +85,8 @@ export function buildShelter(i: number) {
   const g = new THREE.Group();
   const parts: THREE.BufferGeometry[] = [];
   // the realistic look wants weathered paint, a rusted roof and a sun-faded panel
-  const steel = REAL ? '#2f4656' : '#41617a', bench = REAL ? '#8a5a2b' : '#c98a3e';
-  const roof = REAL ? '#6e5a4a' : '#b9c2c6', wall = REAL ? '#8f8573' : '#efe6d2';
+  const steel = '#2f4656', bench = '#8a5a2b';
+  const roof = '#6e5a4a', wall = '#8f8573';
   for (const z of [-1.6, 1.6]) for (const x of [-0.2, 0.75]) parts.push(box(0.09, 3.2, 0.09, x, 0.9, z, steel));
   parts.push(colored(new THREE.BoxGeometry(1.5, 0.08, 3.8).rotateZ(-0.12).translate(0.3, 2.55, 0), roof));
   parts.push(box(0.06, 1.7, 3.2, 0.78, 1.15, 0, wall));
