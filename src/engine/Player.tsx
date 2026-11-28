@@ -88,7 +88,8 @@ function Player({ def }: { def: StoryDefinition }) {
     return () => { off = true; };
   }, [def, clock]);
 
-  const onSceneReady = () => {
+  const onSceneReady = async () => {
+    await Promise.all(clock.pending);
     sceneReady.current = true;
     if (CAPTURE) exposeCapture(def, clock);
     else setPhase((p) => (p === 'loading' ? 'ready' : p));
