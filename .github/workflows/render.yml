@@ -24,7 +24,7 @@ on:
         type: number
         default: 16
       parts_from:
-        description: Reuse the parts of an earlier run (its run id) instead of rendering again
+        description: Reuse the picture of an earlier run (its run id) instead of rendering again; the sound is mixed fresh
         type: string
         default: ''
       publish:
@@ -115,6 +115,14 @@ jobs:
           merge-multiple: true
           run-id: ${{ inputs.parts_from || github.run_id }}
           github-token: ${{ github.token }}
+      # reused pictures take their sound from this code, so a sound fix needs no new render
+      - if: inputs.parts_from
+        uses: actions/setup-node@v7
+        with: { node-version: 22, cache: npm }
+      - if: inputs.parts_from
+        run: npm ci && npx playwright install --with-deps --only-shell chromium
+      - if: inputs.parts_from
+        run: node tools/export.mjs "$STORY" --size "$SIZE" --sound-only --out parts/part-000.mp4
       - run: node tools/stitch.mjs "$STORY" --parts parts --out "out/$STORY-$SIZE.mp4"
       - uses: actions/upload-artifact@v7
         with:
