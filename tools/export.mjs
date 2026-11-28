@@ -41,6 +41,8 @@ const base = server.resolvedUrls.local[0];
 // Headless machines usually have no GPU: SwiftShader renders WebGL on the CPU. Pass --gpu on a desktop.
 const browser = await chromium.launch({ args: flag('gpu') ? ['--use-angle=default', '--enable-gpu'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: W, height: H } });
+// a styled frame can take well over Playwright's default 30 s on a CPU-only runner
+page.setDefaultTimeout(600_000);
 page.on('pageerror', (e) => console.error('page error:', e.message));
 await page.goto(`${base}stories/${id}/?capture&w=${W}&h=${H}${flag('no-subs') ? '&subs=0' : ''}${opt('look') ? '&look=' + opt('look') : ''}`);
 await page.waitForFunction(() => document.documentElement.dataset.ready === '1', null, { timeout: 180_000 });
