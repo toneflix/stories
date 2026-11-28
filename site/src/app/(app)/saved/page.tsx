@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { SignInPrompt } from '@/components/SignInPrompt';
 import { StoryGrid } from '@/components/StoryGrid';
 import { findReleased, type ReleasedStory } from '@/content/stories';
+import { previewsForViewer } from '@/lib/access';
 import { savedStoryIds } from '@/lib/social';
 
 export const metadata: Metadata = { title: 'Saved', robots: { index: false } };
@@ -10,8 +11,11 @@ export const metadata: Metadata = { title: 'Saved', robots: { index: false } };
 export default async function SavedPage() {
   const session = await auth();
   const userId = session?.user?.id;
+  const previews = await previewsForViewer();
   const saved = userId
-    ? (await savedStoryIds(userId)).map(findReleased).filter((s): s is ReleasedStory => !!s)
+    ? (await savedStoryIds(userId))
+        .map((slug) => findReleased(slug) ?? previews.find((s) => s.slug === slug))
+        .filter((s): s is ReleasedStory => !!s)
     : [];
 
   return (

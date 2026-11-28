@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { findReleased } from '@/content/stories';
+import { findPreview } from './access';
 
 export type SlugContext = { params: Promise<{ slug: string }> };
 export type IdContext = { params: Promise<{ id: string }> };
@@ -14,5 +15,5 @@ export async function currentUserId() {
 
 export async function storyFrom(ctx: SlugContext) {
   const { slug } = await ctx.params;
-  return findReleased(slug);
+  return findReleased(slug) ?? (await findPreview(slug));
 }

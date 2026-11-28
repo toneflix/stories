@@ -1,4 +1,4 @@
-import { index, integer, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import type { AdapterAccountType } from 'next-auth/adapters';
 
 export const users = pgTable('user', {
@@ -7,6 +7,8 @@ export const users = pgTable('user', {
   email: text('email').unique(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   image: text('image'),
+  // Sees stories before they are released
+  earlyAccess: boolean('early_access').notNull().default(false),
 });
 
 export const accounts = pgTable(
