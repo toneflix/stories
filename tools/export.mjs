@@ -4,6 +4,7 @@
 //   npm run export -- lantern-keeper                # 720x1280, 30 fps → out/lantern-keeper.mp4
 //   npm run export -- lantern-keeper --hd           # 1080x1920
 //   npm run export -- lantern-keeper --from 20 --to 26 --no-subs
+//   npm run export -- lantern-keeper --sound-only --out dir/x.mp4   # only dir/soundtrack.wav
 //
 // How: starts Vite, opens the story in headless Chromium with ?capture, and for every
 // frame calls window.__story.renderAt(t) and takes a screenshot (canvas + subtitles/title
@@ -66,8 +67,15 @@ console.log(`${info.title}: frames ${first}-${last} (${(frames / fps).toFixed(2)
 // soundtrack first (fast): trimmed to the range, or whole for chunked renders
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'story-'));
 const wav = chunk ? path.join(path.dirname(out), 'soundtrack.wav') : path.join(tmp, 'soundtrack.wav');
-if (!chunk || chunk[0] === 0) {
-  fs.writeFileSync(wav, Buffer.from(await page.evaluate(() => window.__story.soundtrackWav()), 'base64'));
+if (!chunk || chunk[0] === 0 || flag('sound-only')) {
+  const at = flag('sound-only') ? path.join(path.dirname(out), 'soundtrack.wav') : wav;
+  fs.writeFileSync(at, Buffer.from(await page.evaluate(() => window.__story.soundtrackWav()), 'base64'));
+  // a new mix for a picture that is already rendered (stitch.mjs joins them)
+  if (flag('sound-only')) {
+    await browser.close(); await server.close(); fs.rmSync(tmp, { recursive: true });
+    console.log(`wrote ${path.relative(process.cwd(), at)}`);
+    process.exit(0);
+  }
 }
 
 const audioIn = chunk ? [] : ['-ss', String(from), '-t', String(frames / fps), '-i', wav];
