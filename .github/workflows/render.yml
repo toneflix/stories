@@ -23,8 +23,13 @@ on:
         description: Runners to share the work for each story (1 to 20)
         type: number
         default: 16
+      parts_from:
+        description: Reuse the parts of an earlier run (its run id) instead of rendering again
+        type: string
+        default: ''
 permissions:
   contents: read
+  actions: read
 env:
   SIZE: ${{ inputs.size || '720x1280' }}
 jobs:
@@ -60,6 +65,7 @@ jobs:
 
   render:
     needs: plan
+    if: ${{ !inputs.parts_from }}
     runs-on: ubuntu-24.04
     timeout-minutes: 300
     strategy:
@@ -84,6 +90,7 @@ jobs:
 
   stitch:
     needs: [plan, render]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && contains(fromJSON('["success","skipped"]'), needs.render.result) }}
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -93,21 +100,25 @@ jobs:
       - uses: actions/checkout@v7
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - uses: actions/download-artifact@v8
-        with: { pattern: 'part-${{ matrix.story }}-*', path: parts, merge-multiple: true }
+        with:
+          pattern: 'part-${{ matrix.story }}-*'
+          path: parts
+          merge-multiple: true
+          run-id: ${{ inputs.parts_from || github.run_id }}
+          github-token: ${{ github.token }}
       - run: node tools/stitch.mjs "$STORY" --parts parts --out "out/$STORY-$SIZE.mp4"
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.story }}-${{ env.SIZE }}
           path: out/
-      - if: github.event_name == 'release'
-        run: node tools/stitch.mjs "$STORY" --parts parts --web --out "web/$STORY/video.mp4"
-      - if: github.event_name == 'release'
-        uses: actions/upload-artifact@v7
+      # the copy viewers get, so previews match the site
+      - run: node tools/stitch.mjs "$STORY" --parts parts --web --out "web/$STORY/video.mp4"
+      - uses: actions/upload-artifact@v7
         with:
           name: web-${{ matrix.story }}
           path: web/
-          retention-days: 1
-      - run: echo "Rendered **$STORY** at $SIZE. Download it from the artifacts below." >> "$GITHUB_STEP_SUMMARY"
+          retention-days: ${{ github.event_name == 'release' && 1 || 30 }}
+      - run: echo "Rendered **$STORY** at $SIZE. **web-$STORY** is the copy viewers get." >> "$GITHUB_STEP_SUMMARY"
 
   publish:
     if: github.event_name == 'release'
