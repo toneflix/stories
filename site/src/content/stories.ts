@@ -71,6 +71,23 @@ const ready: ReleasedStory[] = [
     seconds: 112,
     published: '2026-11-27',
   },
+  {
+    id: 'the-other-lamp',
+    slug: 'the-other-lamp',
+    title: 'The Other Lamp',
+    theme: 'mystery',
+    status: 'released',
+    narrated: true,
+    caption:
+      'Every night, she stood at the window. The flat across the street had been empty for months. So who turned on the lamp?',
+    video: '/media/the-other-lamp/video.mp4',
+    poster: '/media/the-other-lamp/poster.jpg',
+    stills: [1, 2, 3, 4].map((n) => `/media/the-other-lamp/still-${n}.jpg`),
+    liveUrl: `${liveBase}/stories/the-other-lamp/index.html`,
+    sourceUrl: source('the-other-lamp'),
+    seconds: 108,
+    published: '2026-11-28',
+  },
 ];
 
 export const isReleased = (id: string) => manifest.released.includes(id);
@@ -124,7 +141,6 @@ const upcoming: Record<ThemeId, string[]> = {
     'Footsteps Upstairs',
     'The Photo Booth',
     'Floor Zero',
-    'The Lamp Across the Way',
   ],
 };
 

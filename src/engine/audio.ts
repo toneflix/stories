@@ -55,6 +55,31 @@ export async function loadBuffer(ctx: BaseAudioContext, url: string) {
   return ctx.decodeAudioData(await res.arrayBuffer());
 }
 
+/**
+ * Decodes recorded sounds by name. Loops (`loop: true` names) lose the silent padding MP3
+ * encoders add at either end, so they repeat without a gap.
+ */
+export async function loadSounds(urls: Record<string, string>, loops: string[] = []) {
+  const ctx = new OfflineAudioContext(2, 1, 48000);
+  const out: Record<string, AudioBuffer> = {};
+  await Promise.all(Object.entries(urls).map(async ([name, url]) => {
+    const b = await loadBuffer(ctx, url);
+    out[name] = loops.includes(name) ? trimSilence(ctx, b) : b;
+  }));
+  return out;
+}
+
+function trimSilence(ctx: BaseAudioContext, b: AudioBuffer, floor = 1e-4) {
+  const chans = Array.from({ length: b.numberOfChannels }, (_, i) => b.getChannelData(i));
+  const loud = (i: number) => chans.some((c) => Math.abs(c[i]) > floor);
+  let a = 0, z = b.length - 1;
+  while (a < z && !loud(a)) a++;
+  while (z > a && !loud(z)) z--;
+  const out = ctx.createBuffer(b.numberOfChannels, z - a + 1, b.sampleRate);
+  chans.forEach((c, i) => out.copyToChannel(c.subarray(a, z + 1), i));
+  return out;
+}
+
 export interface NarrationClip { file: string; duration: number; text: string }
 export type NarrationManifest = Record<string, NarrationClip>;
 

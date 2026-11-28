@@ -1,0 +1,8 @@
+{
+  "voice": "narrator",
+  "lines": [
+    { "id": "r1", "text": "Every night, she stood at the window." },
+    { "id": "r2", "text": "The flat across the street had been empty for months." },
+    { "id": "r3", "text": "So who turned on the lamp?" }
+  ]
+}

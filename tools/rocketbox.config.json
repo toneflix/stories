@@ -1,13 +1,89 @@
 {
   "avatars": [
-    { "dir": "../.sources/rocketbox/avatars/Male_Adult_12", "name": "Male_Adult_12", "greyHair": true, "out": "../public/assets/characters/rb-ayo.glb" },
-    { "dir": "../.sources/rocketbox/avatars/Female_Party_02", "name": "Female_Party_02", "out": "../public/assets/characters/rb-passenger.glb" }
+    {
+      "dir": "../.sources/rocketbox/avatars/Male_Adult_12",
+      "name": "Male_Adult_12",
+      "greyHair": true,
+      "out": "../public/assets/characters/rb-ayo.glb"
+    },
+    {
+      "dir": "../.sources/rocketbox/avatars/Female_Party_02",
+      "name": "Female_Party_02",
+      "out": "../public/assets/characters/rb-passenger.glb"
+    },
+    {
+      "dir": "../.sources/rocketbox/avatars/Business_Female_01",
+      "name": "Business_Female_01",
+      "out": "../.sources/people/rb-donor.glb"
+    }
   ],
   "clips": [
-    { "src": "../.sources/rocketbox/anims/m_sit_chair_idle_neutral_01.max.fbx", "name": "Driving_Loop", "out": "../public/assets/animations/rb-ayo-drive.glb" },
-    { "src": "../.sources/rocketbox/anims/f_walk_neutral_01.max.fbx", "name": "Walk_Loop", "inPlace": true, "out": "../public/assets/animations/rb-her-walk.glb" },
-    { "src": "../.sources/rocketbox/anims/f_idle_neutral_01.max.fbx", "name": "Idle_Loop", "out": "../public/assets/animations/rb-her-idle.glb" },
-    { "src": "../.sources/rocketbox/anims/f_sit_chair_idle_neutral_01.max.fbx", "name": "Sitting_Idle_Loop", "out": "../public/assets/animations/rb-her-sit.glb" },
-    { "src": "../.sources/rocketbox/anims/f_sit_chair_gestic_shrug_01.max.fbx", "name": "Sitting_Talking_Loop", "out": "../public/assets/animations/rb-her-sit-talk.glb" }
+    {
+      "src": "../.sources/rocketbox/anims/m_sit_chair_idle_neutral_01.max.fbx",
+      "name": "Driving_Loop",
+      "out": "../public/assets/animations/rb-ayo-drive.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_walk_neutral_01.max.fbx",
+      "name": "Walk_Loop",
+      "inPlace": true,
+      "out": "../public/assets/animations/rb-her-walk.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_idle_neutral_01.max.fbx",
+      "name": "Idle_Loop",
+      "out": "../public/assets/animations/rb-her-idle.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_sit_chair_idle_neutral_01.max.fbx",
+      "name": "Sitting_Idle_Loop",
+      "out": "../public/assets/animations/rb-her-sit.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_sit_chair_gestic_shrug_01.max.fbx",
+      "name": "Sitting_Talking_Loop",
+      "out": "../public/assets/animations/rb-her-sit-talk.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_drink_idle.max.fbx",
+      "name": "Cup_Idle_Loop",
+      "out": "../public/assets/animations/rb-neighbour-cup.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_drink_drinking.max.fbx",
+      "name": "Cup_Drink",
+      "out": "../public/assets/animations/rb-neighbour-drink.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_idle_look_around_01.max.fbx",
+      "name": "Look_Around",
+      "out": "../public/assets/animations/rb-neighbour-look.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_idle_nervous_01.max.fbx",
+      "name": "Nervous_Loop",
+      "out": "../public/assets/animations/rb-neighbour-nervous.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_try_door_inwards.max.fbx",
+      "name": "Push_Door",
+      "out": "../public/assets/animations/rb-neighbour-door.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_gestic_thoughtful_01.max.fbx",
+      "name": "Thoughtful",
+      "out": "../public/assets/animations/rb-neighbour-think.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_walk_slow_01.max.fbx",
+      "name": "Walk_Slow_Loop",
+      "inPlace": true,
+      "out": "../public/assets/animations/rb-neighbour-walk.glb"
+    },
+    {
+      "src": "../.sources/rocketbox/anims/f_idle_neutral_01.max.fbx",
+      "name": "Idle_Loop",
+      "out": "../public/assets/animations/rb-neighbour-idle.glb"
+    }
   ]
 }

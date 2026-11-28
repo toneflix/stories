@@ -45,6 +45,10 @@ raw "$OBJ/000-061/a08d416576c64bec96b10fd889d6d274.glb" .sources/props/vw-t3.glb
 raw "$OBJ/000-075/dd400ed693cf416e940c5b8e3107205e.glb" .sources/props/old-residential.glb
 raw "$OBJ/000-056/e2b6f532e1fe4f7280890971d78183f4.glb" .sources/props/modular-slums.glb
 raw "$OBJ/000-008/e902e0af80804d01924387da6af8eecf.glb" .sources/props/slum-house.glb
+raw "$OBJ/000-131/edc8c38a80f5419092f72e8febf3598b.glb" .sources/props/wall-clock.glb
+# "African Makehuman Character with PBR Textures" by mertbbicak (CC BY 4.0), rigged by tools/skin-transfer.mjs
+mkdir -p .sources/people
+raw "$OBJ/000-079/1a88f2e4a0724c639e81e6fe92587b9c.glb" .sources/people/makehuman-african-woman.glb
 
 # Realistic people (MIT): Microsoft Rocketbox avatars and animations, from GitHub.
 # Only the files we use are checked out (the full repository is several GB).
@@ -54,12 +58,20 @@ if [ ! -d "$RB" ]; then
 fi
 AV=Assets/Avatars/Adults; ST=Assets/Animations/all_animations_max_motextr_static; XY=Assets/Animations/all_animations_max_motextr_xy
 ANIMS="$ST/m_sit_chair_idle_neutral_01.max.fbx $ST/m_sit_chair_gestic_shrug_01.max.fbx $ST/m_idle_neutral_01.max.fbx $ST/f_sit_chair_idle_neutral_01.max.fbx $ST/f_sit_chair_gestic_shrug_01.max.fbx $ST/f_idle_neutral_01.max.fbx $ST/f_wave_01.max.fbx $XY/f_walk_neutral_01.max.fbx"
-git -C "$RB" sparse-checkout set --no-cone "$AV/Male_Adult_12/Export/Male_Adult_12.fbx" "$AV/Male_Adult_12/Textures/*" "$AV/Female_Party_02/Export/Female_Party_02.fbx" "$AV/Female_Party_02/Textures/*" $ANIMS
+# The Other Lamp
+ANIMS="$ANIMS $ST/f_drink_idle.max.fbx $ST/f_drink_drinking.max.fbx $ST/f_idle_look_around_01.max.fbx $ST/f_idle_nervous_01.max.fbx $ST/f_try_door_inwards.max.fbx $ST/f_gestic_thoughtful_01.max.fbx $XY/f_walk_slow_01.max.fbx"
+PRO=Assets/Avatars/Professions
+git -C "$RB" sparse-checkout set --no-cone "$AV/Male_Adult_12/Export/Male_Adult_12.fbx" "$AV/Male_Adult_12/Textures/*" "$AV/Female_Party_02/Export/Female_Party_02.fbx" "$AV/Female_Party_02/Textures/*" "$PRO/Business_Female_01/Export/Business_Female_01.fbx" "$PRO/Business_Female_01/Textures/*" $ANIMS
 git -C "$RB" checkout -q HEAD
 mkdir -p .sources/rocketbox/avatars .sources/rocketbox/anims
 for a in Male_Adult_12 Female_Party_02; do
   mkdir -p ".sources/rocketbox/avatars/$a"
   cp "$RB/$AV/$a/Export/$a.fbx" ".sources/rocketbox/avatars/$a/"
   cp -r "$RB/$AV/$a/Textures" ".sources/rocketbox/avatars/$a/"
+done
+for a in Business_Female_01; do
+  mkdir -p ".sources/rocketbox/avatars/$a"
+  cp "$RB/$PRO/$a/Export/$a.fbx" ".sources/rocketbox/avatars/$a/"
+  cp -r "$RB/$PRO/$a/Textures" ".sources/rocketbox/avatars/$a/"
 done
 for f in $ANIMS; do cp "$RB/$f" .sources/rocketbox/anims/; done

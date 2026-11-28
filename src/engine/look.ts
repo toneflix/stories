@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 
-// A story page with <meta name="tf-look" content="real"> uses lit, physically based materials
-// and the sketch pass instead of the house cel look.
-export const REAL = typeof document !== 'undefined' && document.querySelector('meta[name="tf-look"]')?.getAttribute('content') === 'real';
+// A story page with <meta name="tf-look" content="real"> (or ?look=real) uses lit, physically based
+// materials and the styled finish instead of the house cel look.
+const look = typeof document === 'undefined' ? null
+  : new URLSearchParams(location.search).get('look') ?? document.querySelector('meta[name="tf-look"]')?.getAttribute('content');
+export const REAL = look === 'real';
 
 /** Tileable noise on a canvas: a sum of sines at whole-number frequencies, so edges match. */
 export function tileNoise(size: number, seed: number, octaves = 6) {

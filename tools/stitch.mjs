@@ -3,7 +3,7 @@
 //
 //   npm run stitch -- lantern-keeper                 # out/lantern-keeper-parts/ → out/lantern-keeper.mp4
 //   npm run stitch -- lantern-keeper --parts dir --out file
-//   npm run stitch -- lantern-keeper --web            # smaller re-encode for the website
+//   npm run stitch -- lantern-keeper --web            # the website copy: 720 wide, capped at 3 Mbps
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,7 +26,10 @@ const list = path.join(dir, 'parts.txt');
 fs.writeFileSync(list, parts.map((f) => `file '${f}'\n`).join(''));
 fs.mkdirSync(path.dirname(out), { recursive: true });
 const web = args.includes('--web');
-const video = web ? ['-c:v', 'libx264', '-preset', 'slow', '-crf', '26', '-pix_fmt', 'yuv420p'] : ['-c:v', 'copy'];
+// grain changes every frame, so the cap keeps the web copy small enough to stream on mobile data
+const video = web
+  ? ['-vf', 'scale=720:-2:flags=lanczos', '-c:v', 'libx264', '-preset', 'slow', '-crf', '26', '-maxrate', '3M', '-bufsize', '6M', '-pix_fmt', 'yuv420p']
+  : ['-c:v', 'copy'];
 const ff = spawnSync('ffmpeg', [
   '-y', '-loglevel', 'error',
   '-f', 'concat', '-safe', '0', '-i', list, '-i', wav,

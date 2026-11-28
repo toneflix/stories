@@ -20,6 +20,9 @@ export class StoryClock implements FrameState {
   /** DOM overlays subscribe here so they update in the same tick as the canvas. */
   subscribe(fn: (s: FrameState) => void) { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; }
   emit() { this.listeners.forEach((fn) => fn(this)); }
+  /** Work the scene must finish before the film can start (e.g. a light bake). */
+  pending: Promise<unknown>[] = [];
+  waitFor(p: Promise<unknown>) { this.pending.push(p); }
   /** Named objects the viewer can click during a `wait` cue. */
   targets = new Map<string, THREE.Object3D>();
 }
