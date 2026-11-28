@@ -163,9 +163,9 @@ export const CAMERA: CameraKey[] = [
   // her face, from outside her window
   { t: 30.01, pos: A(1.15, EYE - 0.1, -0.3), look: A(1.75, EYE - 0.1, -0.8), fov: 54, cut: true },
   { t: 36, pos: A(1.2, EYE - 0.1, -0.3), look: A(1.75, EYE - 0.1, -0.8), fov: 50 },
-  // inside the empty flat: the lamp burns, no one there
-  { t: 36.01, pos: B(1.2, EYE + 0.2, -4.2), look: B(2.3, FY + 0.9, -0.5), fov: 44, cut: true },
-  { t: 44, pos: B(1.5, EYE + 0.1, -3.7), look: B(2.3, FY + 0.85, -0.5), fov: 40 },
+  // what she sees: past her, across the street, pushing in on the lamp
+  { t: 36.01, pos: A(2.04, EYE + 0.05, -1.1), look: B(SPOT.lampB[0], FY + 1.0, SPOT.lampB[1]), fov: 30, cut: true },
+  { t: 44, pos: A(2.06, EYE + 0.02, -0.95), look: B(SPOT.lampB[0], FY + 1.0, SPOT.lampB[1]), fov: 13 },
   // back with her: she puts the cup down, answers with the switch and hurries back to the window
   { t: 44.01, pos: A(3.55, EYE + 0.2, -3.9), look: A(1.2, FY + 1.2, -0.9), fov: 52, cut: true },
   { t: 46.2, pos: A(3.5, EYE + 0.18, -3.75), look: A(1.2, FY + 1.2, -0.9), fov: 50 },
