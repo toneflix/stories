@@ -17,6 +17,8 @@ export interface CameraKey {
   cut?: boolean;
   /** Distance to focus at, in metres. By default the lens focuses on `look`. */
   focus?: number;
+  /** The camera rides along with a moving subject (on any key of a shot): no motion smear. */
+  rides?: boolean;
 }
 
 /** Keys grouped into shots, split at every cut. */
@@ -32,6 +34,7 @@ function shots(keys: CameraKey[]) {
       look: new SplineTrack(ks.map((k) => ({ t: k.t, v: k.look, hold: k.hold })), ends),
       fov: new Track(ks.map((k) => ({ t: k.t, v: k.fov ?? 45 }))),
       focus: ks.some((k) => k.focus) ? new Track(ks.map((k) => ({ t: k.t, v: k.focus ?? 0 }))) : null,
+      rides: ks.some((k) => k.rides),
     };
   });
 }
@@ -85,7 +88,8 @@ export function NarratorCamera({ keys, shake = 0.4 }: { keys: CameraKey[]; shake
     const before = place(ghost, t - SHUTTER);
     ghost.updateProjectionMatrix(); ghost.updateMatrixWorld(true);
     // a paused live film holds still instead of freezing mid-smear
-    lens.hasPrev = before.shot === now.shot && !(live && t === last.t);
+    // motion blur assumes a still world, so it would smear a subject the camera rides with
+    lens.hasPrev = before.shot === now.shot && !all[now.shot].rides && !(live && t === last.t);
     last.t = t;
     lens.prevViewProj.multiplyMatrices(ghost.projectionMatrix, ghost.matrixWorldInverse);
   });
