@@ -2,13 +2,12 @@ import * as THREE from 'three';
 import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Canvas, advance, useFrame, useThree } from '@react-three/fiber';
-import { EffectComposer, Bloom, ToneMapping, SMAA } from '@react-three/postprocessing';
-import { ToneMappingMode } from 'postprocessing';
+import { EffectComposer, Bloom, ToneMapping, SMAA, N8AO, KuwaharaEffect } from '@react-three/postprocessing';
+import { DepthOfFieldEffect, ToneMappingMode } from 'postprocessing';
 import { REAL } from './look';
+import { lens } from './lens';
 import { surfaceLoads } from './surface';
-import { SketchEffect } from './sketch';
-
-const SKETCH = REAL ? new SketchEffect() : null;
+import { CameraBlurEffect, StyleEffect } from './style';
 import { ClockContext, StoryClock, useClock } from './clock';
 import { Mixer, loadNarration, encodeWav, type NarrationManifest } from './audio';
 import { clamp, smoothstep } from './timeline';
@@ -156,14 +155,13 @@ function Player({ def }: { def: StoryDefinition }) {
               )}
               {!CAPTURE && <LookAround waiting={waiting} onHit={() => setWaiting(null)} />}
               <Emit />
-              <EffectComposer multisampling={0}>
-                <SMAA />
-                {REAL
-                  ? <Bloom mipmapBlur intensity={0.35} luminanceThreshold={1.1} luminanceSmoothing={0.3} radius={0.6} />
-                  : <Bloom mipmapBlur intensity={0.9} luminanceThreshold={0.85} luminanceSmoothing={0.2} radius={0.7} />}
-                <ToneMapping mode={ToneMappingMode.NEUTRAL} />
-                {SKETCH ? <primitive object={SKETCH} /> : <></>}
-              </EffectComposer>
+              {REAL ? <StyledFinish /> : (
+                <EffectComposer multisampling={0}>
+                  <SMAA />
+                  <Bloom mipmapBlur intensity={0.9} luminanceThreshold={0.85} luminanceSmoothing={0.2} radius={0.7} />
+                  <ToneMapping mode={ToneMappingMode.NEUTRAL} />
+                </EffectComposer>
+              )}
             </ClockContext.Provider>
           </Canvas>
           <Overlays def={def} clock={clock} manifest={manifest} subtitles={params.get('subs') !== '0'} />
@@ -225,6 +223,45 @@ function Director({ def, running, waiting, onCue, onEnd }: {
     if (clock.t >= def.duration && !ended.current) { ended.current = true; onEnd(); }
   }, -10);
   return null;
+}
+
+/**
+ * The finish for lit stories: soft contact shadows, a lens that focuses and smears with the
+ * camera's motion, a filmic roll-off, then the house grade (see style.ts).
+ */
+function StyledFinish() {
+  const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
+  const clock = useClock();
+  const fx = useMemo(() => ({
+    dof: new DepthOfFieldEffect(camera, { focusDistance: lens.focus, focusRange: 2, bokehScale: MOBILE ? 1.5 : 2.5, resolutionScale: 0.5 }),
+    blur: new CameraBlurEffect(camera),
+    paint: new KuwaharaEffect({ radius: 2, sectorCount: 8 }),
+    style: new StyleEffect(),
+  }), [camera]);
+  const height = useThree((s) => s.size.height * s.viewport.dpr);
+  useEffect(() => {
+    // brushwork a few pixels wide at any resolution, mixed in so detail survives
+    fx.paint.radius = Math.max(1, Math.round(height / 640));
+    fx.paint.blendMode.opacity.value = 0.65;
+  }, [fx, height]);
+  useFrame(() => {
+    // the in-focus zone deepens with distance, like a real lens at a middling aperture
+    fx.dof.cocMaterial.focusDistance = lens.focus;
+    fx.dof.cocMaterial.focusRange = Math.max(0.6, lens.focus * 0.5);
+    fx.style.time = clock.t;
+  }, 0.95);
+  return (
+    <EffectComposer multisampling={0}>
+      <N8AO halfRes quality={MOBILE ? 'performance' : 'medium'} aoRadius={0.7} distanceFalloff={0.5} intensity={2.4} />
+      <SMAA />
+      <primitive object={fx.dof} />
+      <primitive object={fx.blur} />
+      <Bloom mipmapBlur intensity={0.45} luminanceThreshold={1.0} luminanceSmoothing={0.35} radius={0.7} />
+      <ToneMapping mode={ToneMappingMode.NEUTRAL} />
+      <primitive object={fx.paint} />
+      <primitive object={fx.style} />
+    </EffectComposer>
+  );
 }
 
 /** Pushes the frame's time to DOM overlays, after the scene has updated. */
