@@ -165,7 +165,12 @@ function Player({ def }: { def: StoryDefinition }) {
             </ClockContext.Provider>
           </Canvas>
           <Overlays def={def} clock={clock} manifest={manifest} subtitles={params.get('subs') !== '0'} />
-          {!CAPTURE && <div className={`tf-prompt ${waiting ? 'on' : ''}`}>{waiting?.prompt}</div>}
+          {!CAPTURE && (
+            <div className={`tf-prompt ${waiting ? 'on' : ''}`}>
+              {/* the words answer too, for anyone who taps them instead of the scene */}
+              <button type="button" disabled={!waiting} onClick={() => setWaiting(null)}>{waiting?.prompt}</button>
+            </div>
+          )}
         </div>
         {!CAPTURE && (
           <div className={`tf-start ${phase === 'playing' || phase === 'ended' ? 'gone' : ''}`}>

@@ -29,7 +29,9 @@ html, body, #app { margin: 0; height: 100%; background: var(--tf-bg); overflow: 
 .tf-prompt { display: flex; align-items: flex-start; justify-content: center; padding-top: calc(var(--frame-h) * 0.1); box-sizing: border-box;
   font-family: var(--tf-display); font-weight: 600; font-size: calc(var(--frame-h) * 0.024); opacity: 0; transition: opacity .6s; color: var(--tf-text);
   text-shadow: 0 1px 3px #000, 0 0 16px rgba(0, 0, 0, .8); }
+.tf-prompt button { font: inherit; color: inherit; text-shadow: inherit; background: none; border: 0; padding: 8px 16px; cursor: pointer; }
 .tf-prompt.on { opacity: 1; animation: tf-breathe 2.2s ease-in-out infinite; }
+.tf-prompt.on button { pointer-events: auto; }
 @keyframes tf-breathe { 50% { opacity: .55; } }
 .tf-start { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   background: var(--tf-bg); transition: opacity 1s; text-align: center; padding: 16px; box-sizing: border-box; z-index: 2; }
