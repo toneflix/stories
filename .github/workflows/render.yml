@@ -27,6 +27,10 @@ on:
         description: Reuse the parts of an earlier run (its run id) instead of rendering again
         type: string
         default: ''
+      publish:
+        description: Put the result on the site, the same as a release
+        type: boolean
+        default: false
 permissions:
   contents: read
   actions: read
@@ -126,7 +130,7 @@ jobs:
       - run: echo "Rendered **$STORY** at $SIZE. **web-$STORY** is the copy viewers get." >> "$GITHUB_STEP_SUMMARY"
 
   publish:
-    if: github.event_name == 'release'
+    if: ${{ !cancelled() && needs.stitch.result == 'success' && (github.event_name == 'release' || inputs.publish) }}
     needs: stitch
     runs-on: ubuntu-24.04
     permissions:
@@ -138,9 +142,9 @@ jobs:
         with: { pattern: 'web-*', path: web, merge-multiple: true }
       - name: Commit the new videos
         env:
-          TAG: ${{ github.event.release.tag_name }}
-          AUTHOR: ${{ github.event.release.author.login }}
-          AUTHOR_ID: ${{ github.event.release.author.id }}
+          TAG: ${{ github.event.release.tag_name || inputs.story }}
+          AUTHOR: ${{ github.event.release.author.login || github.actor }}
+          AUTHOR_ID: ${{ github.event.release.author.id || github.actor_id }}
           BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           for dir in web/*/; do
@@ -148,8 +152,9 @@ jobs:
             mkdir -p "site/public/media/$s"
             cp "$dir/video.mp4" "site/public/media/$s/video.mp4"
             [ -f "site/public/media/$s/poster.jpg" ] || cp "$dir/video.jpg" "site/public/media/$s/poster.jpg"
+            jq --arg s "$s" '.released |= (if index($s) then . else . + [$s] end)' stories.json > stories.tmp && mv stories.tmp stories.json
           done
-          git add site/public/media
+          git add site/public/media stories.json
           if git diff --cached --quiet; then echo "Videos unchanged."; exit 0; fi
           git -c user.name="$AUTHOR" -c user.email="$AUTHOR_ID+$AUTHOR@users.noreply.github.com" \
             commit -m "chore: render videos for $TAG"
