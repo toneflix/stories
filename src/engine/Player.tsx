@@ -5,6 +5,7 @@ import { Canvas, advance, useFrame, useThree } from '@react-three/fiber';
 import { EffectComposer, Bloom, ToneMapping, SMAA } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
 import { REAL } from './look';
+import { surfaceLoads } from './surface';
 import { SketchEffect } from './sketch';
 
 const SKETCH = REAL ? new SketchEffect() : null;
@@ -89,7 +90,7 @@ function Player({ def }: { def: StoryDefinition }) {
   }, [def, clock]);
 
   const onSceneReady = async () => {
-    await Promise.all(clock.pending);
+    await Promise.all([...clock.pending, ...surfaceLoads]);
     sceneReady.current = true;
     if (CAPTURE) exposeCapture(def, clock);
     else setPhase((p) => (p === 'loading' ? 'ready' : p));

@@ -26,6 +26,7 @@ Everything here is free to use commercially. The prepared files live in `public/
 | Freesound sound 257456 | [freesound.org/s/257456](https://freesound.org/s/257456/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | The clock in The Other Lamp (`sounds/clock-tick.mp3`) |
 | Freesound sound 146209 | [freesound.org/s/146209](https://freesound.org/s/146209/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | The street door in The Other Lamp (`sounds/street-door.mp3`) |
 | Freesound sound 152976 | [freesound.org/s/152976](https://freesound.org/s/152976/), via the [FSD50K](https://zenodo.org/records/4060432) dataset | CC0 1.0 | The old door in The Other Lamp (`sounds/door-creak.mp3`) |
+| AmbientCG textures PaintedPlaster011, PaintedPlaster012, Tiles038, Wood060, Fabric030 | [ambientcg.com](https://ambientcg.com), via the [nyuuzyou/ambientcg](https://huggingface.co/datasets/nyuuzyou/ambientcg) mirror | CC0 1.0 | Plaster, floor tiles, wood and cloth in the flats (`textures/`) |
 
 Made in code (no external asset): terrain, trees, village, lanterns, sky, fireflies; Route 7's flood, palms, poles and bus stops; all music and sound effects except The Other Lamp's.
 
