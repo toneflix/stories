@@ -138,11 +138,11 @@ const driverFace = (t: number) => busPoint(t, 0.45, 1.27 - LOW, 1.35);
 /** The narrator's camera. Vertical frame (9:16): favour height, stage in depth. */
 export const CAMERA: CameraKey[] = [
   // dawn: high over the drowned street, coming down to meet the bus
-  { t: 0, pos: [-3, 16, -45], look: [1.5, 2, 10], fov: 50 },
+  { t: 0, pos: [-3, 16, -45], look: [1.5, 2, 10], fov: 50, rides: true },
   { t: 9, pos: [-3.2, 4.5, -26], look: busPoint(9, 0, 1, 0), fov: 44 },
   { t: 14.4, pos: busPoint(14.4, 2.8, 1.4, 5.0), look: busPoint(14.4, 0.4, 1.0, 1.0), fov: 42 },
   // alongside the driver's window, then round to the windscreen
-  { t: 14.5, pos: busPoint(14.5, 2.1 + LOW, 1.3 - LOW, 1.45), look: driverFace(14.5), fov: 36, cut: true },
+  { t: 14.5, pos: busPoint(14.5, 2.1 + LOW, 1.3 - LOW, 1.45), look: driverFace(14.5), fov: 36, cut: true, rides: true },
   { t: 20, pos: busPoint(20, 1.9 + LOW, 1.3 - LOW, 1.9), look: driverFace(20), fov: 34 },
   { t: 23.2, pos: busPoint(23.2, 2.4, 1.35 - LOW, 3.6), look: busPoint(23.2, 0.45, 1.2 - LOW, 1.6), fov: 38 },
   { t: 25.9, pos: busPoint(25.9, 0.7, 1.3 - LOW * 0.5, 4.6), look: busPoint(25.9, 0.35, 1.1 - LOW, 1.5), fov: 38 },
@@ -154,10 +154,12 @@ export const CAMERA: CameraKey[] = [
   { t: 37, pos: shelterPoint(1, 3.5, -10, 8.5), look: shelterPoint(1, -1.7, 0, 0.4), fov: 40, cut: true },
   { t: 43.9, pos: shelterPoint(1, 3.3, -8.8, 8.0), look: shelterPoint(1, -1.7, 1, 0.5), fov: 38 },
   // the days go by: the bus leaves down the long street
-  { t: 44, pos: busPoint(44, -0.6, 1.3, -9), look: busPoint(44, 0, 1.5, 30), fov: 40, cut: true },
+  { t: 44, pos: busPoint(44, -0.6, 1.3, -9), look: busPoint(44, 0, 1.5, 30), fov: 40, cut: true, rides: true },
   { t: 47.9, pos: busPoint(44, -0.6, 1.8, -9), look: busPoint(47.9, 0, 1.5, 0), fov: 34 },
   // the last stop, evening: from beside the empty bench, the bus comes in
-  { t: 48, pos: shelterPoint(2, 0.4, -2.6, 1.15), look: busPoint(48, 0, 1.0, 0), fov: 40, cut: true },
+  { t: 48, pos: shelterPoint(2, 0.4, -2.6, 1.15), look: busPoint(48, 0, 1.0, 0), fov: 40, cut: true, rides: true },
+  { t: 50, pos: shelterPoint(2, 0.38, -2.68, 1.17), look: busPoint(50, 0.1, 1.05, 0.3), fov: 41 },
+  { t: 52, pos: shelterPoint(2, 0.36, -2.75, 1.19), look: busPoint(52, 0.15, 1.08, 0.5), fov: 43 },
   { t: 53.5, pos: shelterPoint(2, 0.35, -2.8, 1.2), look: busPoint(53.5, 0.2, 1.1, 0.6), fov: 44 },
   { t: 56.4, pos: shelterPoint(2, 0.3, -2.9, 1.2), look: busPoint(56.4, 0.2, 1.1, 0.6), fov: 44 },
   // over her shoulder as the bus pulls away, stops and backs up
@@ -173,7 +175,7 @@ export const CAMERA: CameraKey[] = [
   { t: 84, pos: busPoint(84, -1.6 - DOOR_OUT, 1.2 - LOW, 0.8 - DOOR_BACK), look: busPoint(84, 0.35, 1.1 - LOW, 1.05), fov: 38 + DOOR_WIDEN },
   { t: 88.4, pos: busPoint(88.4, -1.6 - DOOR_OUT, 1.2 - LOW, 0.8 - DOOR_BACK), look: busPoint(88.4, 0.35, 1.12 - LOW, 0.9), fov: 40 + DOOR_WIDEN },
   // away into the sunset
-  { t: 88.5, pos: busPoint(88.5, -4.5, 1.6, -7), look: busPoint(88.5, 0, 1.0, 0), fov: 46, cut: true },
+  { t: 88.5, pos: busPoint(88.5, -4.5, 1.6, -7), look: busPoint(88.5, 0, 1.0, 0), fov: 46, cut: true, rides: true },
   { t: 101, pos: busPoint(88.5, -1.5, 3.2, -12), look: busPoint(101, 0, 1.5, 6), fov: 42 },
   { t: 112, pos: busPoint(88.5, -0.8, 5.5, -16), look: busPoint(112, 0, 3, 40), fov: 40 },
 ];
