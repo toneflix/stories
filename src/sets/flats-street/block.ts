@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { rng } from '../../engine/random';
 import { Kit, plain, plaster } from './materials';
+import { surface } from '../../engine/surface';
 
 // A four-storey walk-up block of flats, built in code so it can be entered: a front
 // stairwell climbs every floor, and one flat on the second floor is a real room behind its
@@ -38,6 +39,8 @@ export interface BlockOptions {
   roomPaint: string;
   /** Floor of the room (tiles, worn cement...). */
   roomFloor: string;
+  /** Photographed plaster for the room's walls (a folder in public/assets/textures). */
+  roomPlaster?: string;
 }
 
 export interface Block {
@@ -66,7 +69,11 @@ function openings(): Opening[] {
 export function buildBlock(o: BlockOptions): Block {
   const r = rng(o.seed);
   const kit = new Kit({
-    plaster: plaster(), trim: plaster(), wood: plain(0.75), metal: plain(0.45, 0.6), paint: plain(0.85), tile: plain(0.35),
+    plaster: surface(plaster(), 'paintedplaster012', { size: 2.5, detail: 0.35, relief: 0.8 }),
+    trim: surface(plaster(), 'paintedplaster012', { size: 2.5, detail: 0.2, relief: 0.5 }),
+    wood: surface(plain(0.75), 'wood060', { size: 0.9, detail: 0.8 }), metal: plain(0.45, 0.6),
+    paint: surface(plain(0.85), o.roomPlaster ?? 'paintedplaster011', { size: 2.4, detail: 0.3, relief: 0.5 }),
+    tile: surface(plain(0.35), 'tiles038', { size: 1.2, detail: 0.8 }),
     inside: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.BackSide }),
   });
   const glow = new Kit({ glow: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, toneMapped: false }) });

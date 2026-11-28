@@ -25,7 +25,7 @@ export function buildFlatsStreet(): FlatsStreet {
   const group = new THREE.Group();
   const a = buildBlock({ seed: 11, paint: '#b9ad94', trim: '#d3c9b3', lit: 0.35, roomPaint: '#8fa39a', roomFloor: '#7a6a58' });
   a.group.position.set(0, 0, -FRONT);
-  const b = buildBlock({ seed: 23, paint: '#a7a89c', trim: '#c4c3b6', lit: 0.12, roomPaint: '#b5a88a', roomFloor: '#6a655c' });
+  const b = buildBlock({ seed: 23, paint: '#a7a89c', trim: '#c4c3b6', lit: 0.12, roomPaint: '#b5a88a', roomFloor: '#6a655c', roomPlaster: 'paintedplaster012' });
   b.group.position.set(0, 0, FRONT);
   b.group.rotation.y = Math.PI;
   const gen = buildGenerator();

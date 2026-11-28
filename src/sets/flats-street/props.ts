@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import { Kit, plain } from './materials';
+import { surface } from '../../engine/surface';
+
+const wood = () => surface(plain(0.6), 'wood060', { size: 0.7, detail: 0.8 });
+const weave = (size = 0.4) => surface(plain(0.95), 'fabric030', { size, detail: 0.7, relief: 0.8 });
 
 // Furniture and small things for the flats, in metres, each standing on y = 0.
 
@@ -40,7 +44,7 @@ export function buildLamp(cord: THREE.Vector3[], plugAt: THREE.Vector3) {
 
 /** A small side table, `h` high to its top. */
 export function buildSideTable(top = '#5b4330', h = 0.6) {
-  const kit = new Kit({ wood: plain(0.6) });
+  const kit = new Kit({ wood: wood() });
   kit.box('wood', top, 0.5, 0.03, 0.4, 0, h, 0);
   for (const [x, z] of [[-0.22, -0.17], [0.22, -0.17], [-0.22, 0.17], [0.22, 0.17]]) kit.box('wood', top, 0.035, h, 0.035, x, h / 2, z);
   return kit.build();
@@ -48,7 +52,7 @@ export function buildSideTable(top = '#5b4330', h = 0.6) {
 
 /** A two-seat settee with cushions, facing +z. */
 export function buildSettee(cloth = '#5a3f36') {
-  const kit = new Kit({ cloth: plain(0.95), wood: plain(0.6) });
+  const kit = new Kit({ cloth: weave(), wood: wood() });
   kit.box('cloth', cloth, 1.5, 0.22, 0.75, 0, 0.32, 0).box('cloth', cloth, 1.5, 0.5, 0.18, 0, 0.62, -0.3)
     .box('cloth', cloth, 0.16, 0.3, 0.75, -0.76, 0.5, 0).box('cloth', cloth, 0.16, 0.3, 0.75, 0.76, 0.5, 0);
   for (const x of [-0.35, 0.35]) kit.box('cloth', '#6b4c41', 0.68, 0.1, 0.6, x, 0.48, 0.05);
@@ -58,7 +62,7 @@ export function buildSettee(cloth = '#5a3f36') {
 
 /** A wooden chair; with `sheet` a dust sheet is thrown over it. */
 export function buildChair(sheet = false) {
-  const kit = new Kit({ wood: plain(0.6), cloth: plain(0.95) });
+  const kit = new Kit({ wood: wood(), cloth: weave() });
   if (sheet) {
     kit.add('cloth', new THREE.CylinderGeometry(0.3, 0.38, 0.92, 9, 2).translate(0, 0.46, 0), '#c9c2b2');
     kit.add('cloth', new THREE.SphereGeometry(0.3, 9, 5, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.25, 1).translate(0, 0.92, 0), '#c9c2b2');
@@ -137,7 +141,7 @@ export function fitWallClock(src: THREE.Object3D, d = 0.3) {
 
 /** Curtains either side of a window w wide, hung from a rod at height h (local x across, facing +z). */
 export function buildCurtains(w: number, h: number, cloth = '#6b2f2a') {
-  const kit = new Kit({ cloth: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, side: THREE.DoubleSide }), rod: plain(0.4, 0.6) });
+  const kit = new Kit({ cloth: surface(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, side: THREE.DoubleSide }), 'fabric030', { size: 0.5, detail: 0.6 }), rod: plain(0.4, 0.6) });
   kit.add('rod', new THREE.CylinderGeometry(0.012, 0.012, w + 0.6, 8).rotateZ(Math.PI / 2).translate(0, h, 0), '#3a3026');
   for (const s of [-1, 1]) {
     const geo = new THREE.PlaneGeometry(0.45, h - 0.1, 12, 1);
@@ -157,9 +161,9 @@ export function buildSocket() {
   return kit.build(false);
 }
 
-/** A rug, newspapers or any flat thing on the floor: a thin box. */
-export function buildRug(w: number, d: number, color: string) {
-  const kit = new Kit({ c: plain(0.95) });
+/** A rug, newspapers or any flat thing on the floor: a thin box. Woven unless `flat`. */
+export function buildRug(w: number, d: number, color: string, flat = false) {
+  const kit = new Kit({ c: flat ? plain(0.95) : weave(0.3) });
   kit.box('c', color, w, 0.008, d, 0, 0.004, 0);
   return kit.build();
 }

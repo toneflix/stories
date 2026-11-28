@@ -6,6 +6,7 @@ import { useStoryFrame, useHitTarget } from '../../engine/clock';
 import { useCharacter, lookAt } from '../../engine/character';
 import { solveTwoBone } from '../../engine/ik';
 import { NarratorCamera } from '../../engine/camera';
+import { BakedLight, ProbeField } from '../../engine/probes';
 import { publicUrl } from '../../engine/types';
 import { MOBILE } from '../../engine/Player';
 import { smoothstep } from '../../engine/timeline';
@@ -16,6 +17,9 @@ import {
 import { A, B, CAMERA, FY, HER_CLIPS, S, SPOT, STRIDE, herAt, walkedAt } from './script';
 
 const asset = (p: string) => publicUrl(`assets/${p}`);
+type V3 = [number, number, number];
+/** A table lamp's bulb, fully on. */
+const LAMP = 6;
 
 export function Scene() {
   const set = useMemo(() => buildFlatsStreet(), []);
@@ -109,8 +113,8 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     g.add(bulbA, wireA);
     const ceil = new THREE.PointLight('#ffd7a0', 14, 10, 1.5);
     ceil.position.copy(bulbA.position).add(new THREE.Vector3(0, -0.2, 0));
-    ceil.castShadow = true; ceil.shadow.mapSize.set(512, 512); ceil.shadow.bias = -0.002;
-    const lampLightA = new THREE.PointLight('#ffb468', 0, 6, 1.6);
+    ceil.castShadow = true; ceil.shadow.mapSize.set(512, 512); ceil.shadow.bias = -0.002; ceil.shadow.radius = 5;
+    const lampLightA = new THREE.PointLight('#ffb468', 0, 6, 2);
     lampLightA.position.set(...A(SPOT.lampA[0], FY + 1.23, SPOT.lampA[1]));
 
     // the empty flat: dust sheets, newspapers, the lamp by the window, its plug on the floor
@@ -126,14 +130,14 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
       inB(lampB.group, lb[0], lb[1], FY + 0.865),
       inB(buildChair(true), 2.9, -3.3),
       inB(buildChair(true), 1.1, -3.9),
-      inB(buildRug(0.55, 0.4, '#bdb6a3'), 1.5, -2.2, FY, 0.4),
-      inB(buildRug(0.5, 0.38, '#a9a28f'), 1.8, -2.5, FY + 0.009, -0.3),
+      inB(buildRug(0.55, 0.4, '#bdb6a3', true), 1.5, -2.2, FY, 0.4),
+      inB(buildRug(0.5, 0.38, '#a9a28f', true), 1.8, -2.5, FY + 0.009, -0.3),
       inB(buildSocket(), SPOT.socketB[0], SPOT.socketB[1], FY + 0.35, -Math.PI / 2),
     );
     // the lamp's cord ends here, at a plug, a step short of the socket
-    const lampLightB = new THREE.PointLight('#ffb468', 0, 7, 1.5);
+    const lampLightB = new THREE.PointLight('#ffb468', 0, 7, 2);
     lampLightB.position.set(...B(lb[0], FY + 1.33, lb[1]));
-    lampLightB.castShadow = true; lampLightB.shadow.mapSize.set(512, 512); lampLightB.shadow.bias = -0.002;
+    lampLightB.castShadow = true; lampLightB.shadow.mapSize.set(512, 512); lampLightB.shadow.bias = -0.002; lampLightB.shadow.radius = 7;
 
     // stairwell bulbs: the ground floors bright, the landings dim
     const stairs = [set.a, set.b].map((_, i) => {
@@ -146,10 +150,23 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     mid.position.set(...B(STAIR.x0 + 1.0, level(1) + 1.5 + 2.2, STAIR.z0 + 0.6));
     stairs.push(mid);
     // the streetlight's glow coming in through her window, onto her face
-    const spill = new THREE.PointLight('#ffb070', 1.6, 4, 1.5);
+    const spill = new THREE.PointLight('#ffb070', 3.5, 5, 1.5);
     spill.position.set(...A(1.6, FY + 1.9, 0.9));
     g.add(ceil, lampLightA, lampLightB, spill, ...stairs);
-    return { g, lampA, lampB, clock, bulbA, ceil, lampLightA, lampLightB };
+    // bounce light in the two flats and the stairwell she climbs, per switchable light
+    const box = (a: number[], b: number[]) => ({ min: a.map((v, i) => Math.min(v, b[i])) as V3, max: a.map((v, i) => Math.max(v, b[i])) as V3 });
+    const top = level(ROOM.f + 1) - 0.25;
+    const probes = new ProbeField([
+      { ...box(A(0.16, FY, -4.6), A(3.85, top, -0.26)), spacing: 0.9 },
+      { ...box(B(0.16, FY, -4.6), B(3.85, top, -0.26)), spacing: 0.9 },
+      { ...box(B(STAIR.x0 + 0.15, level(1), STAIR.z0 + 0.15), B(STAIR.x1 - 0.15, level(3), STAIR.z1)), spacing: 0.9 },
+    ], [
+      { name: 'rest', rest: true, bounces: 1 },
+      { name: 'ceiling', lights: [[ceil, 14]], volumes: [0] },
+      { name: 'lampA', lights: [[lampLightA, LAMP]], volumes: [0] },
+      { name: 'lampB', lights: [[lampLightB, LAMP]], volumes: [1] },
+    ]);
+    return { g, lampA, lampB, clock, bulbA, ceil, lampLightA, lampLightB, probes };
   }, [set, clockModel]);
 
   // the switch she taps: a generous invisible target over the plate
@@ -163,9 +180,11 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
   useStoryFrame(({ t }) => {
     const s = S.at(t);
     f.lampA.set(s.lampA); f.lampB.set(s.lampB);
-    f.lampLightA.intensity = s.lampA * 6;
-    f.lampLightB.intensity = s.lampB * 6;
+    f.lampLightA.intensity = s.lampA * LAMP;
+    f.lampLightB.intensity = s.lampB * LAMP;
     f.ceil.intensity = s.ceiling * 14;
+    // lamplight bounces a little less than it would, so each lamp keeps its pool
+    f.probes.set('ceiling', s.ceiling); f.probes.set('lampA', s.lampA * 0.6); f.probes.set('lampB', s.lampB * 0.6);
     (f.bulbA.material as THREE.MeshBasicMaterial).color.set('#4a4036').lerp(new THREE.Color('#fff2d8').multiplyScalar(4), s.ceiling);
     // the second hand reaches 12 as the minute turns
     f.clock.set(21, s.minute, Math.floor(t + 37.5) % 60);
@@ -177,6 +196,7 @@ function Flats({ set }: { set: ReturnType<typeof buildFlatsStreet> }) {
     <>
       <primitive object={f.g} />
       <primitive object={hit} />
+      <BakedLight field={f.probes} url={publicUrl('stories/the-other-lamp/light.bin')} />
     </>
   );
 }
